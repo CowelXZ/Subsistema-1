@@ -1,0 +1,178 @@
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 20px;
+  padding: 5px 0;
+}
+
+/* Buscador de Matrícula */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  padding-right: 45px;
+}
+
+.search-btn {
+  position: absolute;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: var(--uat-guinda);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  transition: transform 0.2s;
+}
+
+.search-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Cámara */
+.camera-container {
+  text-align: center;
+}
+
+.camera-viewport {
+  background: #333;
+  border-radius: 12px;
+  margin: 15px 0;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnails {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.thumb {
+  width: 60px;
+  height: 60px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+}
+
+/* Toggle Status */
+.status-toggle-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.status-toggle-group input[type="radio"] {
+  display: none;
+}
+
+.status-option {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #eee;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.status-option:hover {
+  opacity: 0.9;
+  border-color: #ccc;
+}
+
+#status-ok:checked+.success-opt,
+.status-option.success-opt {
+  background-color: var(--success);
+  color: white;
+  border-color: var(--success);
+  opacity: 1;
+}
+
+#status-no:checked+.danger-opt,
+.status-option.danger-opt {
+  background-color: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  opacity: 1;
+}
+
+.camera-actions {
+  margin-top: 20px;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.action-buttons-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-capture {
+  flex: 2;
+  background: var(--orange);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.btn-clean {
+  flex: 1;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.bottom-action {
+  margin-top: 30px;
+  text-align: center;
+}

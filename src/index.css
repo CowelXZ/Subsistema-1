@@ -22,7 +22,7 @@ body {
   padding: 20px;
 }
 
-/* --- Header Estilo UAT --- */
+/* --- Header Global (Common) --- */
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -46,14 +46,7 @@ body {
   object-fit: contain;
 }
 
-/* --- Grid y Cards --- */
-/*Pal Comit*/
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
-}
-
+/* --- Estilos Base de Tarjetas --- */
 .card {
   background: white;
   border-radius: 20px;
@@ -66,14 +59,9 @@ body {
   border-bottom: 2px solid var(--bg-light);
   margin-bottom: 20px;
   padding-bottom: 10px;
-
-  /* --- AGREGADO PARA ALINEAR --- */
   display: flex;
-  /* Activa el modo flexible */
   justify-content: space-between;
-  /* Empuja los elementos a los extremos (Izquierda <-> Derecha) */
   align-items: center;
-  /* Los centra verticalmente para que se vean alineados */
 }
 
 .card-header h2 {
@@ -82,17 +70,7 @@ body {
   font-size: 1.3rem;
 }
 
-/* --- Formulario --- */
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
+/* --- Inputs y Labels Globales --- */
 label {
   display: block;
   font-weight: bold;
@@ -320,81 +298,132 @@ label {
   background-color: var(--uat-guinda-dark);
 }
 
-/* --- Estilos Específicos para Login/Entrada --- */
-.main-centered {
-  display: flex;
-  justify-content: center;
+.btn-outline {
+  background: transparent;
+  border: 1px solid #ccc;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
-  min-height: 60vh;
-  /* Centrado vertical */
+  gap: 8px;
 }
 
-.login-card {
-  display: flex;
-  width: 100%;
-  max-width: 900px;
-  padding: 40px;
-  gap: 40px;
-  align-items: center;
-}
-
-.login-section {
-  flex: 1;
-  /* Mitad y mitad */
-}
-
-.left-section {
-  border-right: 1px solid #eee;
-  padding-right: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.login-label {
-  color: #999;
-  font-size: 0.8rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.big-input {
-  font-size: 1.2rem;
-  padding: 15px;
-  background: #fcfcfc;
-}
-
-.btn-dark {
-  background-color: var(--uat-guinda);
-  margin-top: 10px;
-  font-size: 1rem;
-  padding: 15px;
-}
-
-/* Placeholder de Foto */
-.photo-placeholder {
-  width: 200px;
-  height: 200px;
-  margin: 0 auto 20px auto;
-  border: 3px dashed #ddd;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f9f9f9;
-}
-
-.user-icon {
-  font-size: 80px !important;
-  color: #ddd;
-}
-
+/* Utility classes */
 .text-center {
   text-align: center;
 }
 
-.user-info h3 {
-  color: var(--uat-guinda-dark);
-  margin: 5px 0;
+.full-width {
+  width: 100%;
+}
+
+.fw-bold {
+  font-weight: 600;
+  color: #444;
+}
+
+/* --- HEADER RESTRUCTURADO (Flexbox) --- */
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 15px 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+  gap: 15px;
+  /* Espacio mínimo entre secciones */
+}
+
+/* Secciones laterales (ocupan el mismo ancho para centrar el título) */
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  /* Evita desbordes */
+}
+
+.header-right {
+  justify-content: flex-end;
+  /* Logo derecho pegado al final */
+}
+
+/* El Título Central */
+.header-title {
+  flex: 2;
+  /* El título tiene prioridad de espacio */
+  text-align: center;
+  margin: 0;
+  font-size: 1.4rem;
+  /* Ajustable según gusto */
+  color: var(--uat-guinda);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Logos */
+.top-logo {
+  height: 60px;
+  object-fit: contain;
+}
+
+/* --- BOTÓN DE VOLVER (Integrado) --- */
+.btn-header-back {
+  /* Ya NO usamos position: absolute */
+  background-color: var(--uat-guinda);
+  color: white;
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+
+  /* LA CLAVE: Separación del logo UAT */
+  margin-right: 15px;
+  flex-shrink: 0;
+  /* Que no se aplaste */
+}
+
+.btn-header-back:hover {
+  background-color: var(--orange);
+  transform: scale(1.1);
+}
+
+.btn-header-back .material-icons {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* --- RESPONSIVE (Móvil) --- */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 10px 15px;
+  }
+
+  .top-logo {
+    height: 40px;
+  }
+
+  .header-title {
+    font-size: 1rem;
+  }
+
+  .btn-header-back {
+    width: 35px;
+    height: 35px;
+    margin-right: 10px;
+  }
 }

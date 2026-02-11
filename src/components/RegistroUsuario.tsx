@@ -1,6 +1,11 @@
 import { useState } from 'react';
+import './RegistroUsuario.css';
+import { Header } from './common/Header';
+interface Props {
+    onBack: () => void;
+}
 
-export const RegistroUsuario = () => {
+export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
     // --- ESTADO (Los datos del formulario) ---
     const [formData, setFormData] = useState({
         matricula: '',
@@ -9,7 +14,7 @@ export const RegistroUsuario = () => {
         apellidoMaterno: '',
         grado: '',
         grupo: '',
-        carrera: 'Contador Público', // Valor por defecto
+        carrera: 'Contador Público',
         sexo: 'M',
         observaciones: ''
     });
@@ -27,12 +32,9 @@ export const RegistroUsuario = () => {
 
     return (
         <div className="main-wrapper">
-            {/* --- HEADER --- */}
-            <header className="top-bar">
-                <img src="/img/logo-fcat.jpg" alt="FCAT" className="top-logo" />
-                <h1>Registro de Nuevo Usuario</h1>
-                <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
-            </header>
+            {/* 3. Pásala al Header */}
+            <Header titulo="Registro de Nuevo Usuario" onBack={onBack} />
+
 
             <main className="dashboard-grid">
                 {/* --- COLUMNA IZQUIERDA: DATOS --- */}

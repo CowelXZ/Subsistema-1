@@ -1,0 +1,77 @@
+.single-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.search-bar-card { padding: 15px; display: flex; align-items: center; }
+
+/* Accordion Profesor */
+.professor-card {
+  padding: 0; overflow: hidden; transition: all 0.3s ease; margin-bottom: 20px;
+}
+.prof-header {
+  background-color: #fff; padding: 15px 25px; display: flex;
+  justify-content: space-between; align-items: center; cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+.prof-header:hover { background-color: #fcfcfc; }
+.professor-card:has(.prof-body) .prof-header {
+  border-bottom: 1px solid #eee; background-color: #fafafa;
+}
+
+.prof-info { display: flex; align-items: center; gap: 20px; }
+.prof-avatar {
+  width: 55px; height: 55px; border-radius: 50%; object-fit: cover;
+  border: 2px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.prof-info h3 { margin: 0; color: var(--text-dark); font-size: 1.1rem; font-weight: 600; }
+.prof-info small { color: #888; font-size: 0.9rem; }
+
+.btn-icon-secondary {
+  background: none; border: none; color: #999; cursor: pointer; padding: 5px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.btn-icon-secondary:hover { background-color: #eee; color: var(--uat-guinda); }
+
+.prof-body { padding: 25px; background-color: #fff; animation: fadeIn 0.3s ease-in-out; }
+
+/* Tabla */
+.schedule-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.schedule-table th {
+  text-align: left; color: var(--uat-guinda); font-size: 0.8rem;
+  text-transform: uppercase; padding-bottom: 12px; border-bottom: 2px solid #eee;
+}
+.schedule-table td {
+  padding: 14px 5px; border-bottom: 1px solid #f4f4f4; vertical-align: middle; font-size: 0.95rem;
+}
+
+/* Días (Píldoras) */
+.days-badge { display: flex; gap: 5px; }
+.days-badge span {
+  font-size: 0.75rem; width: 24px; height: 24px; display: flex; align-items: center;
+  justify-content: center; border-radius: 6px; background-color: #f0f0f0;
+  color: #bbb; font-weight: bold;
+}
+.days-badge span.active {
+  background-color: var(--uat-guinda); color: white;
+}
+
+.row-actions { display: flex; gap: 8px; }
+.btn-mini { background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; }
+.btn-mini.edit:hover { background-color: #eee; }
+.btn-mini.delete { color: #d32f2f; opacity: 0.7; }
+.btn-mini.delete:hover { background-color: #ffebee; opacity: 1; }
+
+.btn-outline-primary {
+  width: 100%; padding: 12px; border: 2px dashed #ddd; background: #fafafa;
+  color: #666; border-radius: 8px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 10px; font-weight: 600;
+}
+.btn-outline-primary:hover {
+  border-color: var(--uat-guinda); color: var(--uat-guinda); background-color: #fff5f5;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
