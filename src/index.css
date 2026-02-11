@@ -47,7 +47,6 @@ body {
 }
 
 /* --- Grid y Cards --- */
-/*Pal Comit*/
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -66,14 +65,9 @@ body {
   border-bottom: 2px solid var(--bg-light);
   margin-bottom: 20px;
   padding-bottom: 10px;
-
-  /* --- AGREGADO PARA ALINEAR --- */
   display: flex;
-  /* Activa el modo flexible */
   justify-content: space-between;
-  /* Empuja los elementos a los extremos (Izquierda <-> Derecha) */
   align-items: center;
-  /* Los centra verticalmente para que se vean alineados */
 }
 
 .card-header h2 {
@@ -121,7 +115,7 @@ label {
   padding: 5px 0;
 }
 
-/* NUEVO: Estilos para el Buscador de Matrícula */
+/* --- Buscador Global --- */
 .search-wrapper {
   position: relative;
   display: flex;
@@ -130,7 +124,6 @@ label {
 
 .search-input {
   padding-right: 45px;
-  /* Espacio para que el texto no choque con la lupa */
 }
 
 .search-btn {
@@ -197,19 +190,17 @@ label {
   gap: 8px;
 }
 
-/* NUEVO: Estilos para el Selector de Estado (Toggle) */
+/* Toggle Status */
 .status-toggle-group {
   display: flex;
   gap: 15px;
   margin-top: 5px;
 }
 
-/* Ocultamos los radio buttons reales */
 .status-toggle-group input[type="radio"] {
   display: none;
 }
 
-/* Diseño base de los botones seleccionables */
 .status-option {
   flex: 1;
   padding: 12px;
@@ -224,11 +215,9 @@ label {
   justify-content: center;
   gap: 8px;
   opacity: 0.6;
-  /* Un poco apagado cuando no está seleccionado */
   transition: all 0.3s ease;
 }
 
-/* Estado Activo: Permitido (Verde) */
 #status-ok:checked+.success-opt {
   background-color: var(--success);
   color: white;
@@ -237,7 +226,6 @@ label {
   box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
 }
 
-/* Estado Activo: Denegado (Rojo) */
 #status-no:checked+.danger-opt {
   background-color: var(--danger);
   color: white;
@@ -251,7 +239,6 @@ label {
   border-color: #ccc;
 }
 
-/* Acciones de Cámara */
 .camera-actions {
   margin-top: 20px;
   background: #f9f9f9;
@@ -291,7 +278,6 @@ label {
   cursor: pointer;
 }
 
-/* --- Footer Action --- */
 .bottom-action {
   margin-top: 30px;
   text-align: center;
@@ -314,13 +300,12 @@ label {
   background-color: var(--uat-guinda-dark);
 }
 
-/* --- Estilos Específicos para Login/Entrada --- */
+/* --- Login/Entrada Layout --- */
 .main-centered {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 60vh;
-  /* Centrado vertical */
 }
 
 .login-card {
@@ -334,7 +319,6 @@ label {
 
 .login-section {
   flex: 1;
-  /* Mitad y mitad */
 }
 
 .left-section {
@@ -366,7 +350,6 @@ label {
   padding: 15px;
 }
 
-/* Placeholder de Foto */
 .photo-placeholder {
   width: 200px;
   height: 200px;
@@ -391,4 +374,486 @@ label {
 .user-info h3 {
   color: var(--uat-guinda-dark);
   margin: 5px 0;
+}
+
+/* ========================================= */
+/* --- NUEVOS ESTILOS: ASIGNACIÓN CARGA --- */
+/* ========================================= */
+
+/* Contenedor centralizado para vista de listas */
+.single-column {
+  grid-template-columns: 1fr; /* Sobreescribe el grid de 2 columnas */
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Ajustes barra de búsqueda */
+.search-bar-card {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Tarjeta de Profesor (Accordion) */
+.professor-card {
+  padding: 0; /* Reset del padding original de .card */
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 20px; /* Separación entre tarjetas */
+}
+
+/* Header del Acordeón */
+.prof-header {
+  background-color: #fff;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+
+.prof-header:hover {
+  background-color: #fcfcfc;
+}
+
+/* Cuando el acordeón está abierto, ponemos borde abajo */
+.professor-card:has(.prof-body) .prof-header {
+  border-bottom: 1px solid #eee;
+  background-color: #fafafa;
+}
+
+.prof-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.prof-avatar {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #eee;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.prof-info h3 {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.prof-info small {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* Botón de flecha */
+.btn-icon-secondary {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon-secondary:hover {
+  background-color: #eee;
+  color: var(--uat-guinda);
+}
+
+/* Cuerpo desplegable */
+.prof-body {
+  padding: 25px;
+  background-color: #fff;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Tabla de Horarios */
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.schedule-table th {
+  text-align: left;
+  color: var(--uat-guinda);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #eee;
+}
+
+.schedule-table td {
+  padding: 14px 5px;
+  border-bottom: 1px solid #f4f4f4;
+  vertical-align: middle;
+  font-size: 0.95rem;
+}
+
+.fw-bold {
+  font-weight: 600;
+  color: #444;
+}
+
+/* Píldoras de Días (L M X J V) */
+.days-badge {
+  display: flex;
+  gap: 5px;
+}
+
+.days-badge span {
+  font-size: 0.75rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  color: #bbb;
+  font-weight: bold;
+}
+
+.days-badge span.active {
+  background-color: var(--uat-guinda);
+  color: white;
+  box-shadow: 0 2px 4px rgba(125, 20, 29, 0.2);
+}
+
+/* Botones Mini de la tabla */
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-mini {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.btn-mini.edit { color: #666; }
+.btn-mini.edit:hover { background-color: #eee; color: var(--text-dark); }
+
+.btn-mini.delete { color: #d32f2f; opacity: 0.7; }
+.btn-mini.delete:hover { background-color: #ffebee; opacity: 1; }
+
+/* Botón "Agregar Materia" */
+.btn-outline-primary {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #ddd;
+  background: #fafafa;
+  color: #666;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-outline-primary:hover {
+  border-color: var(--uat-guinda);
+  color: var(--uat-guinda);
+  background-color: #fff5f5;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================= */
+/* --- NUEVOS ESTILOS: REGISTRO ENTRADA V2 --- */
+/* ========================================= */
+
+/* 1. Hacemos la tarjeta mucho más ancha (1200px o 95% de la pantalla) */
+.action-buttons-stack {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0; /* <<< CAMBIA ESTO: Antes era 15px */
+}
+.wide-card {
+    max-width: 1400px !important; /* Sobreescribe el limite anterior */
+    width: 95%;
+    padding: 0 !important; /* Quitamos padding del contenedor principal para manejarlo dentro */
+    overflow: hidden; /* Para que el borde redondeado corte el fondo */
+    min-height: 600px; /* Altura mínima para verse imponente */
+}
+/* ========================================= */
+/* --- ACTUALIZACIÓN: REGISTRO ENTRADA V3 --- */
+/* ========================================= */
+
+/* Contenedor del formulario para apilar input y botón */
+.scan-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre el input y el botón Entrar */
+    width: 100%;
+}
+
+/* Nuevo Botón ENTRAR */
+.btn-enter {
+    background-color: var(--uat-guinda);
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-enter:hover {
+    background-color: var(--uat-guinda-dark);
+    transform: translateY(-2px);
+}
+
+.btn-enter:active {
+    transform: translateY(0);
+}
+
+/* Foto Gigante */
+.photo-frame {
+    width: 500px;  /* AUMENTADO A 300PX */
+    height: 500px; /* AUMENTADO A 300PX */
+    border-radius: 50%;
+    border: 8px solid white;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    overflow: hidden;
+    margin-bottom: 30px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Ajuste del icono por defecto para el tamaño nuevo */
+.user-icon-big {
+    font-size: 160px; 
+    color: #adb5bd;
+}
+
+/* Ajuste para que la tarjeta no se vea apretada con la foto grande */
+.wide-card {
+    min-height: 700px; 
+}
+
+/* Ajuste de columnas: Izquierda (35%) - Derecha (65%) */
+.wide-card .login-section.left-section {
+    flex: 0.35;
+    padding: 50px;
+    background-color: #fff;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.wide-card .login-section.right-section {
+    flex: 0.65;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+/* --- ESTILOS COLUMNA IZQUIERDA --- */
+.input-instruction {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-pulse {
+    font-size: 3rem;
+    color: var(--uat-guinda);
+    animation: pulseIcon 2s infinite;
+}
+
+.scanner-input {
+    text-align: center;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    border: 2px solid var(--uat-guinda);
+    background-color: #fff5f5;
+}
+
+.action-buttons-stack {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-orange {
+    background-color: var(--orange);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* --- ESTILOS COLUMNA DERECHA (INFO) --- */
+
+/* Fondo gris cuando espera, fondo blanco/verde suave cuando hay alumno */
+.idle-scan { background-color: #f8f9fa; }
+.active-scan { background-color: #fff; }
+
+/* Foto más grande y estilizada */
+.photo-frame {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 25px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-photo-real {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-icon-big {
+    font-size: 100px;
+    color: #adb5bd;
+}
+
+/* Información del Alumno */
+.user-display-info {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.student-name {
+    font-size: 2rem;
+    color: var(--uat-guinda-dark);
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+}
+
+.access-badge {
+    display: inline-block;
+    background-color: var(--success);
+    color: white;
+    padding: 5px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 30px;
+}
+
+/* --- GRID DE DETALLES (NUEVO) --- */
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 Columnas */
+    gap: 15px;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.full-width-item {
+    grid-column: span 2; /* Ocupa todo el ancho */
+    border-top: 1px solid #dee2e6;
+    padding-top: 10px;
+    margin-top: 5px;
+}
+
+/* Resaltar el aula (importante) */
+.highlight-item .value {
+    color: var(--uat-guinda);
+    font-size: 1.4rem;
+}
+
+.detail-item .label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.detail-item .value {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #212529;
+}
+
+/* Mensaje de espera */
+.idle-message h3 {
+    color: #6c757d;
+    font-size: 1.5rem;
+}
+
+/* Animaciones */
+@keyframes pulseIcon {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.pulse-animation {
+    animation: pulseBadge 1.5s infinite;
+}
+
+@keyframes pulseBadge {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
 }
