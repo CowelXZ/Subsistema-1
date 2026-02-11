@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Header } from './common/Header';
+import './AsignacionCargo.css';
+import { Header } from './common/Header'
 
-// --- TIPOS DE DATOS ---
 interface Clase {
     id: number;
     materia: string;

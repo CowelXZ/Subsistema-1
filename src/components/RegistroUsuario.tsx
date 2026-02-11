@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './RegistroUsuario.css';
 
 export const RegistroUsuario = () => {
     // --- ESTADO (Los datos del formulario) ---
@@ -139,40 +140,40 @@ export const RegistroUsuario = () => {
                         </div>
                     </div>
 
-                    <div className="status-section">
-                        <label>Estado de Acceso</label>
-                        <div className="status-toggle-group">
-                            {/* Opción Permitido */}
-                            <label
-                                className={`status-option ${accessStatus === 'permitido' ? 'success-opt' : ''}`}
-                                style={{ opacity: accessStatus === 'permitido' ? 1 : 0.6 }}
-                            >
-                                <input
-                                    type="radio"
-                                    name="access_status"
-                                    checked={accessStatus === 'permitido'}
-                                    onChange={() => setAccessStatus('permitido')}
-                                    style={{ display: 'none' }}
-                                />
-                                <span className="material-icons">check_circle</span> PERMITIDO
-                            </label>
+<div className="status-section">
+            <label>Estado de Acceso</label>
+            <div className="status-toggle-group">
+              {/* Opción Permitido */}
+              <label
+                // Si accessStatus es 'permitido', se agrega la clase 'success-opt'
+                className={`status-option ${accessStatus === 'permitido' ? 'success-opt' : ''}`}
+              >
+                <input
+                    type="radio"
+                    name="access_status"
+                    checked={accessStatus === 'permitido'}
+                    onChange={() => setAccessStatus('permitido')}
+                    style={{display: 'none'}}
+                />
+                <span className="material-icons">check_circle</span> PERMITIDO
+              </label>
 
-                            {/* Opción Denegado */}
-                            <label
-                                className={`status-option ${accessStatus === 'denegado' ? 'danger-opt' : ''}`}
-                                style={{ opacity: accessStatus === 'denegado' ? 1 : 0.6 }}
-                            >
-                                <input
-                                    type="radio"
-                                    name="access_status"
-                                    checked={accessStatus === 'denegado'}
-                                    onChange={() => setAccessStatus('denegado')}
-                                    style={{ display: 'none' }}
-                                />
-                                <span className="material-icons">cancel</span> DENEGADO
-                            </label>
-                        </div>
-                    </div>
+              {/* Opción Denegado */}
+              <label
+                // Si accessStatus es 'denegado', se agrega la clase 'danger-opt'
+                className={`status-option ${accessStatus === 'denegado' ? 'danger-opt' : ''}`}
+              >
+                <input
+                    type="radio"
+                    name="access_status"
+                    checked={accessStatus === 'denegado'}
+                    onChange={() => setAccessStatus('denegado')}
+                    style={{display: 'none'}}
+                />
+                <span className="material-icons">cancel</span> DENEGADO
+              </label>
+            </div>
+          </div>
 
                     <div className="camera-actions" style={{ marginTop: '20px' }}>
                         <div className="action-buttons-row">

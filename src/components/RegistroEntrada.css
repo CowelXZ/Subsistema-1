@@ -1,0 +1,215 @@
+/* --- Contenedor Principal Ajustado --- */
+.main-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+/* Tarjeta Ancha y Alta */
+.wide-card {
+  max-width: 1400px !important;
+  width: 95%;
+  padding: 0 !important;
+  overflow: hidden;
+  min-height: 700px;
+  display: flex;
+  width: 100%;
+}
+
+/* --- Layout de Columnas --- */
+.wide-card .login-section.left-section {
+  flex: 0.35;
+  padding: 50px;
+  background-color: #fff;
+  border-right: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.wide-card .login-section.right-section {
+  flex: 0.65;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+/* --- Columna Izquierda: Formulario --- */
+.input-instruction {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-pulse {
+  font-size: 3rem;
+  color: var(--uat-guinda);
+  animation: pulseIcon 2s infinite;
+}
+
+/* Input y Botón Entrar */
+.scan-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.scanner-input {
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  border: 2px solid var(--uat-guinda);
+  background-color: #fff5f5;
+  padding: 15px;
+}
+
+.btn-enter {
+  background-color: var(--uat-guinda);
+  color: white;
+  border: none;
+  padding: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-enter:hover {
+  background-color: var(--uat-guinda-dark);
+  transform: translateY(-2px);
+}
+
+/* Botones Secundarios (CORREGIDO) */
+.action-buttons-stack {
+  margin-top: 10px; /* Reducido para pegarlo arriba */
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* Sin espacio entre ellos */
+}
+
+.btn-dark {
+  background-color: var(--uat-guinda);
+  margin-top: 10px;
+  font-size: 1rem;
+  padding: 15px;
+}
+
+.btn-orange {
+  background-color: var(--orange);
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* --- Columna Derecha: Datos --- */
+.idle-scan { background-color: #f8f9fa; }
+.active-scan { background-color: #fff; }
+
+/* Foto Gigante (CORREGIDO: Regla única) */
+.photo-frame {
+  width: 300px;  
+  height: 300px; 
+  border-radius: 50%;
+  border: 8px solid white;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+  overflow: hidden;
+  margin-bottom: 30px;
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon-big {
+  font-size: 160px; 
+  color: #adb5bd;
+}
+
+.user-photo-real {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Info Textos */
+.user-display-info {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.student-name {
+  font-size: 2rem;
+  color: var(--uat-guinda-dark);
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+}
+
+.access-badge {
+  display: inline-block;
+  background-color: var(--success);
+  color: white;
+  padding: 5px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 30px;
+}
+
+/* Grid de detalles */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid #e9ecef;
+  text-align: left;
+}
+
+.detail-item { display: flex; flex-direction: column; }
+
+.full-width-item {
+  grid-column: span 2;
+  border-top: 1px solid #dee2e6;
+  padding-top: 10px;
+  margin-top: 5px;
+}
+
+.highlight-item .value { color: var(--uat-guinda); font-size: 1.4rem; }
+.detail-item .label { font-size: 0.75rem; color: #6c757d; font-weight: bold; margin-bottom: 4px; }
+.detail-item .value { font-size: 1.1rem; font-weight: 500; color: #212529; }
+
+/* Animaciones */
+@keyframes pulseIcon {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pulse-animation { animation: pulseBadge 1.5s infinite; }
+@keyframes pulseBadge {
+  0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}

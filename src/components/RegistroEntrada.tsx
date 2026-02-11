@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import './RegistroEntrada.css'; // <--- AGREGA ESTO
 import { Header } from './common/Header';
 
 interface Props {

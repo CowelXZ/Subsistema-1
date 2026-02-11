@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { RegistroUsuario } from './components/RegistroUsuario';
 import { RegistroEntrada } from './components/RegistroEntrada';
-import { AsignacionCarga } from './components/Asignacioncargo'; // <--- Importamos la nueva vista
+import { AsignacionCarga } from './components/AsignacionCargo'; // <--- Importamos la nueva vista
 
 // Definimos los tipos de pantallas posibles
 type Screen = 'entrada' | 'registro' | 'carga';
