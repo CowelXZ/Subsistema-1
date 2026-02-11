@@ -21,7 +21,6 @@ export const RegistroMaestros = () => {
         apellidoMaterno: '',
         gradoAcademico: 'Licenciatura',
         correo: '',
-        facultad: 'F.C.A.T.',
         sexo: 'M',
         observaciones: ''
     });
@@ -85,11 +84,10 @@ export const RegistroMaestros = () => {
 
     return (
         <div className="main-wrapper">
-            {/* --- HEADER (Simulado según tu código anterior) --- */}
             <header className="top-bar">
-                <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
-                <h1>Registro de Maestros</h1>
                 <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
+                <h1>Registro de Maestros</h1>
+                <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
             </header>
 
             <main className="dashboard-grid maestros-grid">
@@ -149,15 +147,11 @@ export const RegistroMaestros = () => {
                                         <option>Doctorado</option>
                                     </select>
                                 </div>
+                                {/* AQUÍ MOVIMOS EL CORREO PARA APROVECHAR EL ESPACIO */}
                                 <div className="form-group">
-                                    <label>Facultad</label>
-                                    <input name="facultad" type="text" className="input-field" value={teacherData.facultad} onChange={handleChange} />
+                                    <label>Correo Institucional</label>
+                                    <input name="correo" type="email" className="input-field" value={teacherData.correo} onChange={handleChange} />
                                 </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Correo Institucional</label>
-                                <input name="correo" type="email" className="input-field" value={teacherData.correo} onChange={handleChange} />
                             </div>
                         </form>
                     </section>

@@ -1,7 +1,8 @@
+/* src/components/RegistroMaestros.css */
+
 /* --- LAYOUT ESPECÍFICO --- */
 .maestros-grid {
-    /* Hereda el grid base pero podemos ajustar espacios si es necesario */
-    align-items: start; /* Para que las columnas no se estiren forzosamente */
+    align-items: start;
 }
 
 .left-column-stack,
@@ -15,7 +16,7 @@
 /* --- TARJETA DE REGISTRO DE HORAS --- */
 .hours-section {
     border-top: 4px solid var(--orange);
-    margin-top: auto; /* Si sobra espacio, empuja hacia abajo */
+    margin-top: auto; 
 }
 
 .label-centered {
@@ -23,7 +24,7 @@
     text-align: center;
 }
 
-/* --- SELECTOR DE DÍAS (Bolas) --- */
+/* --- SELECTOR DE DÍAS --- */
 .days-selector {
     display: flex;
     gap: 8px;
@@ -39,7 +40,7 @@
     cursor: pointer;
     font-weight: bold;
     font-family: 'Roboto', sans-serif;
-    background-color: #e5e7eb; /* Gris inactivo */
+    background-color: #e5e7eb;
     color: #374151;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -74,13 +75,13 @@
 }
 
 .btn-add-hour:hover {
-    background-color: #c2410c; /* Naranja más oscuro */
+    background-color: #c2410c; 
 }
 
-/* --- TARJETA DE HORARIO (TABLA) --- */
+/* --- TARJETA DE HORARIO (TABLA) - VERSIÓN COMPACTA --- */
 .schedule-card {
-    flex: 1; /* Toma el espacio disponible verticalmente */
-    min-height: 350px;
+    flex: 0 0 auto; /* Ya no forzamos a que crezca tanto */
+    min-height: 200px; /* <--- REDUCIDO (antes 350px) */
     display: flex;
     flex-direction: column;
 }
@@ -88,7 +89,7 @@
 .schedule-list-container {
     flex: 1;
     overflow-y: auto;
-    max-height: 400px;
+    max-height: 250px; /* <--- REDUCIDO (antes 400px) para que no empuje */
     padding: 5px;
 }
 
@@ -96,7 +97,7 @@
 .empty-state {
     text-align: center;
     color: #9ca3af;
-    padding: 40px 0;
+    padding: 20px 0; /* Menos padding */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -104,7 +105,7 @@
 }
 
 .empty-state .material-icons {
-    font-size: 48px;
+    font-size: 40px;
     opacity: 0.5;
 }
 
@@ -116,26 +117,26 @@
 
 .table-clean th {
     text-align: left;
-    padding: 10px 5px;
+    padding: 8px 5px;
     border-bottom: 2px solid #eee;
     color: #6b7280;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     font-weight: 600;
 }
 
 .table-clean td {
-    padding: 12px 5px;
+    padding: 8px 5px;
     border-bottom: 1px solid #f3f4f6;
     vertical-align: middle;
 }
 
 .text-sm {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #4b5563;
 }
 
-/* Badges de Días en la tabla */
+/* Badges de Días */
 .days-badge-group {
     display: flex;
     gap: 2px;
@@ -147,7 +148,7 @@
     background-color: var(--uat-guinda);
     color: white;
     font-size: 0.7rem;
-    padding: 2px 6px;
+    padding: 2px 5px;
     border-radius: 4px;
     font-weight: bold;
 }
@@ -172,7 +173,7 @@
 
 /* --- CÁMARA COMPACTA --- */
 .camera-card-compact {
-    flex: 0 0 auto; /* No crece, se queda compacta abajo */
+    flex: 0 0 auto; 
 }
 
 .compact-header {
@@ -185,7 +186,7 @@
 }
 
 .viewport-sm {
-    height: 180px; /* Altura fija reducida */
+    height: 180px; 
     background-color: #1f2937;
     border-radius: 8px;
     overflow: hidden;
@@ -197,7 +198,7 @@
 .compact-actions {
     margin-top: 10px;
     padding: 15px 20px;
-    background-color: transparent; /* Quitamos el fondo gris del original */
+    background-color: transparent; 
 }
 
 .btn-sm {
