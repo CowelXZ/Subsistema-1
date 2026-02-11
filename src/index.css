@@ -228,21 +228,27 @@ label {
   transition: all 0.3s ease;
 }
 
-/* Estado Activo: Permitido (Verde) */
-#status-ok:checked+.success-opt {
+/* --- REEMPLAZA ESTO EN TU CSS --- */
+
+/* Estado Activo: Permitido (Verde) - Modificado para React */
+.status-option.success-opt {
   background-color: var(--success);
+  /* Usa el verde definido arriba #28a745 */
   color: white;
   border-color: var(--success);
   opacity: 1;
+  /* Se vuelve totalmente visible */
   box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
 }
 
-/* Estado Activo: Denegado (Rojo) */
-#status-no:checked+.danger-opt {
+/* Estado Activo: Denegado (Rojo) - Modificado para React */
+.status-option.danger-opt {
   background-color: var(--danger);
+  /* Usa el rojo definido arriba #dc3545 */
   color: white;
   border-color: var(--danger);
   opacity: 1;
+  /* Se vuelve totalmente visible */
   box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
 }
 

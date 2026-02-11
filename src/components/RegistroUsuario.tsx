@@ -131,7 +131,7 @@ export const RegistroUsuario = () => {
 
                     <div className="camera-container">
                         <div className="camera-viewport">
-                            <img src="/img/video-placeholder.png" alt="Vista Previa" className="video-feed" />
+                            <img src="/img/foto-logo2.jpg" alt="Vista Previa" className="video-feed" />
                         </div>
                         <div className="thumbnails">
                             <div className="thumb"></div>
@@ -144,8 +144,8 @@ export const RegistroUsuario = () => {
                         <div className="status-toggle-group">
                             {/* Opción Permitido */}
                             <label
+                                // Si accessStatus es 'permitido', se agrega la clase 'success-opt'
                                 className={`status-option ${accessStatus === 'permitido' ? 'success-opt' : ''}`}
-                                style={{ opacity: accessStatus === 'permitido' ? 1 : 0.6 }}
                             >
                                 <input
                                     type="radio"
@@ -159,8 +159,8 @@ export const RegistroUsuario = () => {
 
                             {/* Opción Denegado */}
                             <label
+                                // Si accessStatus es 'denegado', se agrega la clase 'danger-opt'
                                 className={`status-option ${accessStatus === 'denegado' ? 'danger-opt' : ''}`}
-                                style={{ opacity: accessStatus === 'denegado' ? 1 : 0.6 }}
                             >
                                 <input
                                     type="radio"
