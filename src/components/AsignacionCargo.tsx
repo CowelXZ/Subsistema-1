@@ -16,6 +16,9 @@ interface Profesor {
     foto: string;
     clases: Clase[];
 }
+interface Props {
+    onBack: () => void;
+}
 
 // --- DATOS MOCK (Simulados) ---
 const MOCK_PROFESORES: Profesor[] = [
@@ -37,14 +40,13 @@ const MOCK_PROFESORES: Profesor[] = [
         ]
     }
 ];
-
-export const AsignacionCarga = () => {
+export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
     const [profesores, setProfesores] = useState(MOCK_PROFESORES);
     const [busqueda, setBusqueda] = useState("");
     const [expandedProf, setExpandedProf] = useState<number | null>(null);
 
     // Filtrar profesores por nombre
-    const profesoresFiltrados = profesores.filter(p => 
+    const profesoresFiltrados = profesores.filter(p =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase())
     );
 
@@ -54,16 +56,16 @@ export const AsignacionCarga = () => {
 
     return (
         <div className="main-wrapper">
-            <Header titulo="ASIGNACIÓN DE CARGA ACADÉMICA" />
+            <Header titulo="ASIGNACIÓN DE CARGA ACADÉMICA" onBack={onBack} />
 
             <main className="dashboard-grid single-column">
-                
+
                 {/* --- BARRA DE BÚSQUEDA --- */}
                 <section className="card search-bar-card">
                     <div className="search-wrapper full-width">
-                        <input 
-                            type="text" 
-                            placeholder="Buscar profesor por nombre..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar profesor por nombre..."
                             className="input-field search-input"
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
@@ -78,7 +80,7 @@ export const AsignacionCarga = () => {
                 <div className="professors-list">
                     {profesoresFiltrados.map(prof => (
                         <div key={prof.id} className="card professor-card">
-                            
+
                             {/* CABECERA DEL PROFESOR (Click para expandir) */}
                             <div className="prof-header" onClick={() => toggleExpand(prof.id)}>
                                 <div className="prof-info">
@@ -117,7 +119,7 @@ export const AsignacionCarga = () => {
                                                     <td>
                                                         {/* Renderizado de Días tipo "Píldoras" */}
                                                         <div className="days-badge">
-                                                            {['L','M','X','J','V'].map(d => (
+                                                            {['L', 'M', 'X', 'J', 'V'].map(d => (
                                                                 <span key={d} className={clase.dias.includes(d) ? 'active' : ''}>
                                                                     {d}
                                                                 </span>
@@ -134,7 +136,7 @@ export const AsignacionCarga = () => {
                                             ))}
                                         </tbody>
                                     </table>
-                                    
+
                                     <div className="add-subject-row">
                                         <button className="btn-outline-primary">
                                             <span className="material-icons">add_circle</span> Asignar Nueva Materia

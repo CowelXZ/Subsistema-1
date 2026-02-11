@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import './RegistroMaestros.css';
+import { Header } from './common/Header';
 
+interface Props {
+    onBack: () => void;
+}
 // Tipos para el horario
 type DiaSemana = 'L' | 'M' | 'X' | 'J' | 'V' | 'S';
 
@@ -12,7 +16,7 @@ interface Asignatura {
     dias: DiaSemana[];
 }
 
-export const RegistroMaestros = () => {
+export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
     // --- ESTADO: Datos del Maestro ---
     const [teacherData, setTeacherData] = useState({
         numeroEmpleado: '',
@@ -72,7 +76,7 @@ export const RegistroMaestros = () => {
         };
 
         setHorario([...horario, nuevaAsignatura]);
-        
+
         // Resetear formulario de materia
         setNuevaMateria({ ...nuevaMateria, materia: '', horaInicio: '', horaFin: '', dias: [] });
     };
@@ -84,17 +88,14 @@ export const RegistroMaestros = () => {
 
     return (
         <div className="main-wrapper">
-            <header className="top-bar">
-                <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
-                <h1>Registro de Maestros</h1>
-                <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
-            </header>
+            {/* --- HEADER (Simulado según tu código anterior) --- */}
+            <Header titulo="Registro de Maestros" onBack={onBack} />
 
             <main className="dashboard-grid maestros-grid">
-                
+
                 {/* --- COLUMNA IZQUIERDA: FORMULARIOS --- */}
                 <div className="left-column-stack">
-                    
+
                     {/* SECCIÓN 1: DATOS DEL MAESTRO */}
                     <section className="card">
                         <div className="card-header">
@@ -164,16 +165,16 @@ export const RegistroMaestros = () => {
                         <div className="user-form">
                             <div className="form-group">
                                 <label>Materia</label>
-                                <input 
-                                    name="materia" 
-                                    type="text" 
-                                    placeholder="Nombre de la asignatura" 
-                                    className="input-field" 
-                                    value={nuevaMateria.materia} 
-                                    onChange={handleMateriaChange} 
+                                <input
+                                    name="materia"
+                                    type="text"
+                                    placeholder="Nombre de la asignatura"
+                                    className="input-field"
+                                    value={nuevaMateria.materia}
+                                    onChange={handleMateriaChange}
                                 />
                             </div>
-                            
+
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Hora Inicio</label>
@@ -210,13 +211,13 @@ export const RegistroMaestros = () => {
 
                 {/* --- COLUMNA DERECHA: LISTA Y CÁMARA --- */}
                 <div className="right-column-stack">
-                    
+
                     {/* SECCIÓN 3: LISTA DE HORARIOS */}
                     <section className="card schedule-card">
                         <div className="card-header">
                             <h2>Horario Asignado</h2>
                         </div>
-                        
+
                         <div className="schedule-list-container">
                             {horario.length === 0 ? (
                                 <div className="empty-state">
@@ -271,7 +272,7 @@ export const RegistroMaestros = () => {
 
                         <div className="camera-container compact-view">
                             <div className="camera-viewport viewport-sm">
-                                <img src="/img/video-placeholder.png" alt="Vista Previa" className="video-feed" />
+                                <img src="/img/foto-logo2.jpg" alt="Vista Previa" className="video-feed" />
                             </div>
                         </div>
 
@@ -287,8 +288,8 @@ export const RegistroMaestros = () => {
             </main>
 
             <footer className="bottom-action">
-                <button 
-                    className="btn-save" 
+                <button
+                    className="btn-save"
                     onClick={() => console.log({ maestro: teacherData, horario })}
                 >
                     GUARDAR REGISTRO DOCENTE

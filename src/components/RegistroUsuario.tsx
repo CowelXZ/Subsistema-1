@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import './RegistroUsuario.css';
+import { Header } from './common/Header';
+interface Props {
+    onBack: () => void;
+}
 
-export const RegistroUsuario = () => {
+export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
     // --- ESTADO (Los datos del formulario) ---
     const [formData, setFormData] = useState({
         matricula: '',
@@ -10,7 +14,7 @@ export const RegistroUsuario = () => {
         apellidoMaterno: '',
         grado: '',
         grupo: '',
-        carrera: 'Contador Público', // Valor por defecto
+        carrera: 'Contador Público',
         sexo: 'M',
         observaciones: ''
     });
@@ -28,12 +32,9 @@ export const RegistroUsuario = () => {
 
     return (
         <div className="main-wrapper">
-            {/* --- HEADER --- */}
-            <header className="top-bar">
-                <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
-                <h1>Registro de Nuevo Usuario</h1>
-                <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
-            </header>
+            {/* 3. Pásala al Header */}
+            <Header titulo="Registro de Nuevo Usuario" onBack={onBack} />
+
 
             <main className="dashboard-grid">
                 {/* --- COLUMNA IZQUIERDA: DATOS --- */}
@@ -132,7 +133,7 @@ export const RegistroUsuario = () => {
 
                     <div className="camera-container">
                         <div className="camera-viewport">
-                            <img src="/img/video-placeholder.png" alt="Vista Previa" className="video-feed" />
+                            <img src="/img/foto-logo2.jpg" alt="Vista Previa" className="video-feed" />
                         </div>
                         <div className="thumbnails">
                             <div className="thumb"></div>
@@ -140,40 +141,40 @@ export const RegistroUsuario = () => {
                         </div>
                     </div>
 
-<div className="status-section">
-            <label>Estado de Acceso</label>
-            <div className="status-toggle-group">
-              {/* Opción Permitido */}
-              <label
-                // Si accessStatus es 'permitido', se agrega la clase 'success-opt'
-                className={`status-option ${accessStatus === 'permitido' ? 'success-opt' : ''}`}
-              >
-                <input
-                    type="radio"
-                    name="access_status"
-                    checked={accessStatus === 'permitido'}
-                    onChange={() => setAccessStatus('permitido')}
-                    style={{display: 'none'}}
-                />
-                <span className="material-icons">check_circle</span> PERMITIDO
-              </label>
+                    <div className="status-section">
+                        <label>Estado de Acceso</label>
+                        <div className="status-toggle-group">
+                            {/* Opción Permitido */}
+                            <label
+                                // Si accessStatus es 'permitido', se agrega la clase 'success-opt'
+                                className={`status-option ${accessStatus === 'permitido' ? 'success-opt' : ''}`}
+                            >
+                                <input
+                                    type="radio"
+                                    name="access_status"
+                                    checked={accessStatus === 'permitido'}
+                                    onChange={() => setAccessStatus('permitido')}
+                                    style={{ display: 'none' }}
+                                />
+                                <span className="material-icons">check_circle</span> PERMITIDO
+                            </label>
 
-              {/* Opción Denegado */}
-              <label
-                // Si accessStatus es 'denegado', se agrega la clase 'danger-opt'
-                className={`status-option ${accessStatus === 'denegado' ? 'danger-opt' : ''}`}
-              >
-                <input
-                    type="radio"
-                    name="access_status"
-                    checked={accessStatus === 'denegado'}
-                    onChange={() => setAccessStatus('denegado')}
-                    style={{display: 'none'}}
-                />
-                <span className="material-icons">cancel</span> DENEGADO
-              </label>
-            </div>
-          </div>
+                            {/* Opción Denegado */}
+                            <label
+                                // Si accessStatus es 'denegado', se agrega la clase 'danger-opt'
+                                className={`status-option ${accessStatus === 'denegado' ? 'danger-opt' : ''}`}
+                            >
+                                <input
+                                    type="radio"
+                                    name="access_status"
+                                    checked={accessStatus === 'denegado'}
+                                    onChange={() => setAccessStatus('denegado')}
+                                    style={{ display: 'none' }}
+                                />
+                                <span className="material-icons">cancel</span> DENEGADO
+                            </label>
+                        </div>
+                    </div>
 
                     <div className="camera-actions" style={{ marginTop: '20px' }}>
                         <div className="action-buttons-row">
