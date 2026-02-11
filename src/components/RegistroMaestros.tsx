@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import './RegistroMaestros.css';
 
 // Tipos para el horario
 type DiaSemana = 'L' | 'M' | 'X' | 'J' | 'V' | 'S';
+
 interface Asignatura {
     id: number;
     materia: string;
@@ -34,8 +36,6 @@ export const RegistroMaestros = () => {
         horaFin: '',
         dias: [] as DiaSemana[]
     });
-
-    const [accessStatus, setAccessStatus] = useState<'permitido' | 'denegado'>('permitido');
 
     // Manejador genérico para datos del maestro
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -75,7 +75,7 @@ export const RegistroMaestros = () => {
         setHorario([...horario, nuevaAsignatura]);
         
         // Resetear formulario de materia
-        setNuevaMateria({ materia: '', horaInicio: '', horaFin: '', dias: [] });
+        setNuevaMateria({ ...nuevaMateria, materia: '', horaInicio: '', horaFin: '', dias: [] });
     };
 
     // Eliminar materia de la lista
@@ -85,17 +85,17 @@ export const RegistroMaestros = () => {
 
     return (
         <div className="main-wrapper">
-            {/* --- HEADER --- */}
+            {/* --- HEADER (Simulado según tu código anterior) --- */}
             <header className="top-bar">
-                <img src="/img/logo-fcat.jpg" alt="FCAT" className="top-logo" />
-                <h1>Registro de Maestros</h1>
                 <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
+                <h1>Registro de Maestros</h1>
+                <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
             </header>
 
-            <main className="dashboard-grid">
+            <main className="dashboard-grid maestros-grid">
                 
-                {/* --- COLUMNA IZQUIERDA --- */}
-                <div className="left-column">
+                {/* --- COLUMNA IZQUIERDA: FORMULARIOS --- */}
+                <div className="left-column-stack">
                     
                     {/* SECCIÓN 1: DATOS DEL MAESTRO */}
                     <section className="card">
@@ -162,8 +162,8 @@ export const RegistroMaestros = () => {
                         </form>
                     </section>
 
-                    {/* SECCIÓN 2: REGISTRO DE HORAS (NUEVO) */}
-                    <section className="card" style={{ marginTop: '20px', borderTop: '4px solid #d97706' }}>
+                    {/* SECCIÓN 2: REGISTRO DE HORAS */}
+                    <section className="card hours-section">
                         <div className="card-header">
                             <h2>Registro de Horas</h2>
                         </div>
@@ -192,23 +192,14 @@ export const RegistroMaestros = () => {
                             </div>
 
                             <div className="form-group">
-                                <label style={{marginBottom: '10px', display: 'block'}}>Días de Clase</label>
-                                <div className="days-selector" style={{display: 'flex', gap: '8px', justifyContent: 'center'}}>
+                                <label className="label-centered">Días de Clase</label>
+                                <div className="days-selector">
                                     {['L', 'M', 'X', 'J', 'V', 'S'].map((dia) => (
                                         <button
                                             key={dia}
                                             type="button"
+                                            className={`btn-day ${nuevaMateria.dias.includes(dia as DiaSemana) ? 'active' : ''}`}
                                             onClick={() => toggleDia(dia as DiaSemana)}
-                                            style={{
-                                                width: '35px',
-                                                height: '35px',
-                                                borderRadius: '50%',
-                                                border: 'none',
-                                                fontWeight: 'bold',
-                                                cursor: 'pointer',
-                                                backgroundColor: nuevaMateria.dias.includes(dia as DiaSemana) ? '#800000' : '#e5e7eb', // Guinda activo, Gris inactivo
-                                                color: nuevaMateria.dias.includes(dia as DiaSemana) ? 'white' : '#374151'
-                                            }}
                                         >
                                             {dia}
                                         </button>
@@ -216,74 +207,55 @@ export const RegistroMaestros = () => {
                                 </div>
                             </div>
 
-                            <button 
-                                type="button" 
-                                onClick={agregarMateria}
-                                style={{
-                                    width: '100%', 
-                                    padding: '10px', 
-                                    backgroundColor: '#d97706', 
-                                    color: 'white', 
-                                    border: 'none', 
-                                    borderRadius: '5px', 
-                                    marginTop: '10px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                + AGREGAR HORA
+                            <button type="button" onClick={agregarMateria} className="btn-add-hour">
+                                <span className="material-icons">add_circle</span> AGREGAR HORA
                             </button>
                         </div>
                     </section>
                 </div>
 
-                {/* --- COLUMNA DERECHA --- */}
-                <div className="right-column" style={{ display: 'flex', flexDirection: 'column', gap: '20px'}}>
+                {/* --- COLUMNA DERECHA: LISTA Y CÁMARA --- */}
+                <div className="right-column-stack">
                     
-                    {/* SECCIÓN 3: LISTA DE HORARIOS (ARRIBA) */}
-                    <section className="card" style={{ flex: '1', minHeight: '300px' }}>
+                    {/* SECCIÓN 3: LISTA DE HORARIOS */}
+                    <section className="card schedule-card">
                         <div className="card-header">
                             <h2>Horario Asignado</h2>
                         </div>
-                        <div className="schedule-list" style={{ overflowY: 'auto', maxHeight: '350px', padding: '10px' }}>
+                        
+                        <div className="schedule-list-container">
                             {horario.length === 0 ? (
-                                <p style={{textAlign: 'center', color: '#888', fontStyle: 'italic'}}>No hay materias asignadas.</p>
+                                <div className="empty-state">
+                                    <span className="material-icons">event_busy</span>
+                                    <p>No hay materias asignadas aún.</p>
+                                </div>
                             ) : (
-                                <table style={{width: '100%', borderCollapse: 'collapse'}}>
+                                <table className="table-clean">
                                     <thead>
-                                        <tr style={{borderBottom: '1px solid #ddd', fontSize: '0.9rem', color: '#666'}}>
-                                            <th style={{textAlign: 'left', padding: '8px'}}>Materia</th>
-                                            <th style={{padding: '8px'}}>Horario</th>
-                                            <th style={{padding: '8px'}}>Días</th>
+                                        <tr>
+                                            <th>Materia</th>
+                                            <th className="text-center">Horario</th>
+                                            <th className="text-center">Días</th>
                                             <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {horario.map((item) => (
-                                            <tr key={item.id} style={{borderBottom: '1px solid #eee'}}>
-                                                <td style={{padding: '10px', fontWeight: '500'}}>{item.materia}</td>
-                                                <td style={{padding: '10px', textAlign: 'center', fontSize: '0.9rem'}}>
+                                            <tr key={item.id}>
+                                                <td className="fw-bold">{item.materia}</td>
+                                                <td className="text-center text-sm">
                                                     {item.horaInicio} - {item.horaFin}
                                                 </td>
-                                                <td style={{padding: '10px', textAlign: 'center'}}>
-                                                    {item.dias.map(d => (
-                                                        <span key={d} style={{
-                                                            display: 'inline-block',
-                                                            backgroundColor: '#800000',
-                                                            color: 'white',
-                                                            fontSize: '0.7rem',
-                                                            padding: '2px 5px',
-                                                            borderRadius: '3px',
-                                                            marginRight: '2px'
-                                                        }}>{d}</span>
-                                                    ))}
+                                                <td className="text-center">
+                                                    <div className="days-badge-group">
+                                                        {item.dias.map(d => (
+                                                            <span key={d} className="badge-day">{d}</span>
+                                                        ))}
+                                                    </div>
                                                 </td>
-                                                <td style={{textAlign: 'center'}}>
-                                                    <button 
-                                                        onClick={() => eliminarMateria(item.id)}
-                                                        style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer'}}
-                                                    >
-                                                        <span className="material-icons" style={{fontSize: '18px'}}>delete</span>
+                                                <td className="text-center">
+                                                    <button onClick={() => eliminarMateria(item.id)} className="btn-icon-delete">
+                                                        <span className="material-icons">delete</span>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -295,28 +267,24 @@ export const RegistroMaestros = () => {
                     </section>
 
                     {/* SECCIÓN 4: CÁMARA (COMPACTA) */}
-                    <section className="card" style={{ flex: '0 0 auto' }}>
-                        <div className="card-header" style={{ padding: '10px 15px' }}>
-                            <h2 style={{ fontSize: '1.2rem' }}>Fotografía</h2>
-                            <button className="btn-outline" style={{ padding: '5px 10px', fontSize: '0.8rem' }}>
-                                <span className="material-icons" style={{ fontSize: '16px' }}>photo_camera</span> Activar
+                    <section className="card camera-card-compact">
+                        <div className="card-header compact-header">
+                            <h2>Fotografía</h2>
+                            <button className="btn-outline btn-sm">
+                                <span className="material-icons">photo_camera</span> Activar
                             </button>
                         </div>
 
-                        <div className="camera-container" style={{ padding: '10px' }}>
-                            <div className="camera-viewport" style={{ height: '180px' }}> {/* Altura reducida */}
-                                <img src="/img/video-placeholder.png" alt="Vista Previa" className="video-feed" style={{height: '100%', objectFit: 'cover'}} />
+                        <div className="camera-container compact-view">
+                            <div className="camera-viewport viewport-sm">
+                                <img src="/img/video-placeholder.png" alt="Vista Previa" className="video-feed" />
                             </div>
                         </div>
 
-                        <div className="camera-actions" style={{ marginTop: '10px', paddingBottom: '15px' }}>
-                            <div className="action-buttons-row" style={{ gap: '10px' }}>
-                                <button className="btn-capture" style={{ flex: 1, padding: '8px' }}>
-                                    Capturar
-                                </button>
-                                <button className="btn-clean" style={{ flex: 1, padding: '8px' }}>
-                                    Limpiar
-                                </button>
+                        <div className="camera-actions compact-actions">
+                            <div className="action-buttons-row">
+                                <button className="btn-capture btn-sm">Capturar</button>
+                                <button className="btn-clean btn-sm">Limpiar</button>
                             </div>
                         </div>
                     </section>

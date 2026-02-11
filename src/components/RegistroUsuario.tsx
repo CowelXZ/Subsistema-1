@@ -30,9 +30,9 @@ export const RegistroUsuario = () => {
         <div className="main-wrapper">
             {/* --- HEADER --- */}
             <header className="top-bar">
-                <img src="/img/logo-fcat.jpg" alt="FCAT" className="top-logo" />
-                <h1>Registro de Nuevo Usuario</h1>
                 <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
+                <h1>Registro de Nuevo Usuario</h1>
+                <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
             </header>
 
             <main className="dashboard-grid">

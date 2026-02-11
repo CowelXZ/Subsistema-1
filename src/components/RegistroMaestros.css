@@ -1,0 +1,206 @@
+/* --- LAYOUT ESPECÍFICO --- */
+.maestros-grid {
+    /* Hereda el grid base pero podemos ajustar espacios si es necesario */
+    align-items: start; /* Para que las columnas no se estiren forzosamente */
+}
+
+.left-column-stack,
+.right-column-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+}
+
+/* --- TARJETA DE REGISTRO DE HORAS --- */
+.hours-section {
+    border-top: 4px solid var(--orange);
+    margin-top: auto; /* Si sobra espacio, empuja hacia abajo */
+}
+
+.label-centered {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* --- SELECTOR DE DÍAS (Bolas) --- */
+.days-selector {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.btn-day {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+    background-color: #e5e7eb; /* Gris inactivo */
+    color: #374151;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-day:hover {
+    background-color: #d1d5db;
+}
+
+.btn-day.active {
+    background-color: var(--uat-guinda);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 6px rgba(125, 20, 29, 0.3);
+}
+
+/* Botón Agregar Hora */
+.btn-add-hour {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--orange);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-add-hour:hover {
+    background-color: #c2410c; /* Naranja más oscuro */
+}
+
+/* --- TARJETA DE HORARIO (TABLA) --- */
+.schedule-card {
+    flex: 1; /* Toma el espacio disponible verticalmente */
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+}
+
+.schedule-list-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding: 5px;
+}
+
+/* Estado Vacío */
+.empty-state {
+    text-align: center;
+    color: #9ca3af;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.empty-state .material-icons {
+    font-size: 48px;
+    opacity: 0.5;
+}
+
+/* Tabla Limpia */
+.table-clean {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-clean th {
+    text-align: left;
+    padding: 10px 5px;
+    border-bottom: 2px solid #eee;
+    color: #6b7280;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.table-clean td {
+    padding: 12px 5px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.text-sm {
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+/* Badges de Días en la tabla */
+.days-badge-group {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+}
+
+.badge-day {
+    display: inline-block;
+    background-color: var(--uat-guinda);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Botón Eliminar Fila */
+.btn-icon-delete {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon-delete:hover {
+    background-color: #fee2e2;
+}
+
+/* --- CÁMARA COMPACTA --- */
+.camera-card-compact {
+    flex: 0 0 auto; /* No crece, se queda compacta abajo */
+}
+
+.compact-header {
+    padding: 10px 20px;
+    margin-bottom: 10px;
+}
+
+.compact-view {
+    padding: 0 20px;
+}
+
+.viewport-sm {
+    height: 180px; /* Altura fija reducida */
+    background-color: #1f2937;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-actions {
+    margin-top: 10px;
+    padding: 15px 20px;
+    background-color: transparent; /* Quitamos el fondo gris del original */
+}
+
+.btn-sm {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}

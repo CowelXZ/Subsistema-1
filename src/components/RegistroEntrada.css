@@ -1,3 +1,5 @@
+/* src/components/RegistroEntrada.css */
+
 /* --- Contenedor Principal Ajustado --- */
 .main-centered {
   display: flex;
@@ -96,36 +98,77 @@
   transform: translateY(-2px);
 }
 
-/* Botones Secundarios (CORREGIDO) */
-.action-buttons-stack {
-  margin-top: 10px; /* Reducido para pegarlo arriba */
-  display: flex;
-  flex-direction: column;
-  gap: 0; /* Sin espacio entre ellos */
+/* ========================================================= */
+/* --- NUEVA DISTRIBUCIÓN DE BOTONES (GRID) --- */
+/* ========================================================= */
+
+.action-buttons-grid {
+  margin-top: 30px; /* Separación del botón ENTRAR */
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 Columnas iguales */
+  gap: 15px;
+  width: 100%;
 }
 
-.btn-dark {
+/* Estilo base para los botones de acción */
+.btn-secondary-action {
   background-color: var(--uat-guinda);
-  margin-top: 10px;
-  font-size: 1rem;
-  padding: 15px;
-}
-
-.btn-orange {
-  background-color: var(--orange);
   color: white;
   border: none;
-  padding: 15px;
+  padding: 15px 10px;
   border-radius: 12px;
-  font-weight: bold;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
+  display: flex;
+  flex-direction: column; /* Icono arriba, texto abajo */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  height: 100%; /* Para que llenen la celda del grid */
 }
+
+.btn-secondary-action:hover {
+  transform: translateY(-3px);
+  background-color: var(--uat-guinda-dark);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.btn-secondary-action .material-icons {
+  font-size: 28px; /* Iconos grandes */
+}
+
+/* Modificador: Botón Naranja (Gestión) */
+.btn-secondary-action.orange {
+  background-color: var(--orange);
+}
+
+.btn-secondary-action.orange:hover {
+  background-color: #c2410c; /* Naranja oscuro */
+}
+
+/* Modificador: Ancho Completo (Span 2 columnas) */
+.btn-full-width {
+  grid-column: span 2;
+  flex-direction: row; /* Icono a la izquierda, texto a la derecha */
+  padding: 18px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================================= */
+/* --- FIN NUEVA DISTRIBUCIÓN --- */
+/* ========================================================= */
+
 
 /* --- Columna Derecha: Datos --- */
 .idle-scan { background-color: #f8f9fa; }
 .active-scan { background-color: #fff; }
 
-/* Foto Gigante (CORREGIDO: Regla única) */
+/* Foto Gigante (300px) */
 .photo-frame {
   width: 300px;  
   height: 300px; 
@@ -138,6 +181,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .user-icon-big {
