@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './RegistroUsuario.css';
+import Webcam from 'react-webcam';
 import { Header } from './common/Header';
 interface Props {
     onBack: () => void;
@@ -29,6 +31,25 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
         observaciones: ''
     });
 
+    // 1. Estado para la foto capturada (será un string largo Base64)
+    const [imgSrc, setImgSrc] = useState<string | null>(null);
+
+    // 2. Referencia para controlar la cámara
+    const webcamRef = useRef<Webcam>(null);
+
+    // 3. Función para capturar la foto
+    const capturarFoto = useCallback(() => {
+        if (webcamRef.current) {
+            const imageSrc = webcamRef.current.getScreenshot();
+            setImgSrc(imageSrc); // Guardamos la foto en el estado
+        }
+    }, [webcamRef]);
+
+    // 4. Función para limpiar/retomar foto
+    const limpiarFoto = () => {
+        setImgSrc(null);
+    }
+
     const [accessStatus, setAccessStatus] = useState<'permitido' | 'denegado'>('permitido');
 
     // Función genérica para guardar lo que escribas
@@ -38,6 +59,85 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const guardarEnBaseDeDatos = async () => {
+        // 1. Validaciones básicas
+        if (!formData.matricula || !formData.nombres) {
+            alert("Por favor llena la matrícula y el nombre");
+            return;
+        }
+        if (!imgSrc) {
+            if (!confirm("¿Seguro que quieres guardar sin foto?")) return;
+        }
+
+        try {
+            // 2. Preparamos el paquete de datos
+            const datosParaEnviar = {
+                ...formData,    // Todos los inputs (matricula, nombre, carrera...)
+                fotoBase64: imgSrc // La foto capturada
+            };
+
+            // 3. Enviamos al Backend
+            const respuesta = await fetch('http://localhost:3000/api/usuarios/crear', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosParaEnviar)
+            });
+
+            if (respuesta.ok) {
+                alert("✅ ¡Usuario Guardado Exitosamente!");
+                // Opcional: Limpiar formulario
+                setImgSrc(null);
+                setFormData({ ...formData, matricula: '', nombres: '', apellidoPaterno: '' });
+            } else {
+                const errorData = await respuesta.text();
+                alert("❌ Error al guardar: " + errorData);
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("Error de conexión con el servidor");
+        }
+    };
+
+    const buscarPorMatricula = async () => {
+        if (!formData.matricula) return; // No buscar si está vacío
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/usuarios/${formData.matricula}`);
+
+            if (res.ok) {
+                const data = await res.json();
+
+                // 1. Llenamos el formulario con los datos recibidos
+                setFormData({
+                    matricula: data.matricula,
+                    nombres: data.nombres,
+                    apellidoPaterno: data.apellidoPaterno,
+                    apellidoMaterno: data.apellidoMaterno || '', // Manejar nulos
+                    grado: '', // Estos datos no vienen en la tabla Usuarios, quizás dejarlos vacíos o buscarlos aparte
+                    grupo: '',
+                    carrera: data.carrera,
+                    sexo: data.sexo, // 'M', 'F' o 'NB'
+                    observaciones: data.observaciones || ''
+                });
+
+                // 2. Si trae foto, la mostramos
+                if (data.foto) {
+                    setImgSrc(data.foto);
+                } else {
+                    setImgSrc(null); // Si no tiene foto, limpiar para mostrar cámara en vivo
+                }
+
+                alert("Usuario encontrado. Modo Edición activado.");
+            } else {
+                alert("Usuario no encontrado (Puedes registrarlo como nuevo)");
+                // Opcional: Limpiar campos si no existe
+            }
+        } catch (error) {
+            console.error("Error buscando:", error);
+        }
     };
 
     return (
@@ -67,8 +167,16 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
                                     className="input-field search-input"
                                     value={formData.matricula}
                                     onChange={handleChange}
+                                    // Truco: Buscar al presionar Enter
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault(); // Evita que se envíe el form
+                                            buscarPorMatricula();
+                                        }
+                                    }}
                                 />
-                                <button type="button" className="search-btn">
+                                {/* Botón de lupa */}
+                                <button type="button" className="search-btn" onClick={buscarPorMatricula}>
                                     <span className="material-icons">search</span>
                                 </button>
                             </div>
@@ -106,6 +214,8 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
                             <select
                                 className="form-control" // O la clase que uses
                                 name="carrera"
+                                value={formData.carrera}
+                                onChange={handleChange}
                             // Aquí deberías tener tu onChange y value si ya los usabas
                             >
                                 <option value="">Seleccione una carrera...</option>
@@ -128,8 +238,9 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
                                 <label>
                                     <input type="radio" name="sexo" value="F" checked={formData.sexo === 'F'} onChange={handleChange} /> Femenino
                                 </label>
+                                {/* Nueva opción No Binario */}
                                 <label>
-                                    <input type="radio" name="sexo" value="N/A" checked={formData.sexo === 'N/A'} onChange={handleChange} /> No Especificado
+                                    <input type="radio" name="sexo" value="NB" checked={formData.sexo === 'NB'} onChange={handleChange} /> No Binario
                                 </label>
                             </div>
                         </div>
@@ -152,11 +263,19 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
 
                     <div className="camera-container">
                         <div className="camera-viewport">
-                            <img src="/img/foto-logo2.jpg" alt="Vista Previa" className="video-feed" />
-                        </div>
-                        <div className="thumbnails">
-                            <div className="thumb"></div>
-                            <div className="thumb"></div>
+                            {imgSrc ? (
+                                // CASO 1: Si ya tomamos foto, mostramos la imagen congelada
+                                <img src={imgSrc} alt="Captura" className="video-feed" />
+                            ) : (
+                                // CASO 2: Si no hay foto, mostramos video en vivo
+                                <Webcam
+                                    audio={false}
+                                    ref={webcamRef}
+                                    screenshotFormat="image/jpeg"
+                                    className="video-feed"
+                                    videoConstraints={{ facingMode: "user" }}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -197,19 +316,24 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
 
                     <div className="camera-actions" style={{ marginTop: '20px' }}>
                         <div className="action-buttons-row">
-                            <button className="btn-capture">
-                                <span className="material-icons">camera_alt</span> Capturar
-                            </button>
-                            <button className="btn-clean">
-                                <span className="material-icons">delete</span> Limpiar
-                            </button>
+                            {imgSrc ? (
+                                // Si hay foto, mostramos botón de borrar
+                                <button className="btn-clean" onClick={limpiarFoto} type="button">
+                                    <span className="material-icons">delete</span> Retomar
+                                </button>
+                            ) : (
+                                // Si no hay foto, mostramos botón de capturar
+                                <button className="btn-capture" onClick={capturarFoto} type="button">
+                                    <span className="material-icons">camera_alt</span> Capturar
+                                </button>
+                            )}
                         </div>
                     </div>
                 </section>
             </main>
 
             <footer className="bottom-action">
-                <button className="btn-save" onClick={() => alert(JSON.stringify(formData))}>GUARDAR REGISTRO</button>
+                <button className="btn-save" onClick={guardarEnBaseDeDatos}>GUARDAR REGISTRO</button>
             </footer>
         </div>
     );
