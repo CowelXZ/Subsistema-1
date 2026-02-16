@@ -19,9 +19,9 @@ interface AlumnoData {
     statusAcceso: 'PERMITIDO' | 'DENEGADO';
 }
 
-export const RegistroEntrada: React.FC<Props> = ({ 
-    onNavigateToRegister, 
-    onNavigateToCarga, 
+export const RegistroEntrada: React.FC<Props> = ({
+    onNavigateToRegister,
+    onNavigateToCarga,
     onNavigateToMaestros // Desestructuramos
 }) => {
     // ... (Toda la lógica de useState, useRef y handleScan se queda IGUAL) ...
@@ -33,7 +33,7 @@ export const RegistroEntrada: React.FC<Props> = ({
     useEffect(() => {
         const focusInput = () => inputRef.current?.focus();
         focusInput();
-        const interval = setInterval(focusInput, 3000); 
+        const interval = setInterval(focusInput, 3000);
         return () => clearInterval(interval);
     }, []);
 
@@ -41,7 +41,7 @@ export const RegistroEntrada: React.FC<Props> = ({
         e.preventDefault();
         // Lógica simulada...
         if (codigo === '12345') {
-             setAlumno({
+            setAlumno({
                 nombre: 'HUMBERTO CALLES DÍAZ',
                 matricula: '2183345',
                 carrera: 'Lic. en Tecnologías',
@@ -81,24 +81,24 @@ export const RegistroEntrada: React.FC<Props> = ({
                                 className="input-field big-input scanner-input"
                                 value={codigo}
                                 onChange={(e) => setCodigo(e.target.value)}
-                                autoFocus 
+                                autoFocus
                                 autoComplete="off"
                             />
-                            
+
                             <button type="submit" className="btn-enter">
-                                ENTRAR <span className="material-icons">login</span>
+                                Escanear <span className="material-icons">login</span>
                             </button>
                         </form>
 
                         {/* --- AQUÍ ESTÁ EL CAMBIO DE DISEÑO --- */}
                         <div className="action-buttons-grid">
-                            
+
                             {/* Fila Superior: Registros */}
                             <button className="btn-secondary-action" onClick={onNavigateToRegister}>
                                 <span className="material-icons">person_add</span>
                                 Registrar Alumno
                             </button>
-                            
+
                             <button className="btn-secondary-action" onClick={onNavigateToMaestros}>
                                 <span className="material-icons">school</span>
                                 Registrar Maestro

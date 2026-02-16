@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './RegistroUsuario.css';
 import { Header } from './common/Header';
 interface Props {
@@ -6,6 +6,16 @@ interface Props {
 }
 
 export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
+    // Estado para guardar las carreras que traemos de la BD
+    const [listaCarreras, setListaCarreras] = useState<any[]>([]);
+
+    // useEffect se ejecuta una vez al cargar la página
+    useEffect(() => {
+        fetch('http://localhost:3000/api/carreras')
+            .then(res => res.json())
+            .then(data => setListaCarreras(data))
+            .catch(err => console.error("Error cargando carreras:", err));
+    }, []);
     // --- ESTADO (Los datos del formulario) ---
     const [formData, setFormData] = useState({
         matricula: '',
@@ -93,10 +103,19 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
 
                         <div className="form-group">
                             <label>Carrera</label>
-                            <select name="carrera" className="input-field" value={formData.carrera} onChange={handleChange}>
-                                <option>Contador Público</option>
-                                <option>Lic. en Administración</option>
-                                <option>Lic en Negocios Internacionales</option>
+                            <select
+                                className="form-control" // O la clase que uses
+                                name="carrera"
+                            // Aquí deberías tener tu onChange y value si ya los usabas
+                            >
+                                <option value="">Seleccione una carrera...</option>
+
+                                {/* Aquí hacemos el ciclo (map) para pintar las opciones de la BD */}
+                                {listaCarreras.map((item) => (
+                                    <option key={item.idCarrera} value={item.NombreCarrera}>
+                                        {item.NombreCarrera}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
