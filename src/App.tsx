@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RegistroUsuario } from './components/RegistroUsuario';
+import { RegistroUsuario } from './components/RegistroUsuario/RegistroUsuario';
 import { RegistroEntrada } from './components/RegistroEntrada';
 import { AsignacionCarga } from './components/AsignacionCargo';
 import { RegistroMaestros } from './components/RegistroMaestros';
