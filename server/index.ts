@@ -35,7 +35,7 @@ app.get('/api/carreras', async (req, res) => {
     }
 });
 
-// 3. Registrar Nuevo Usuario (INSERT) - ACTUALIZADO CON LÓGICA DE SEXO
+// 3. Registrar Nuevo Usuario (INSERT)
 app.post('/api/usuarios/crear', async (req, res) => {
     try {
         const {
@@ -55,7 +55,7 @@ app.post('/api/usuarios/crear', async (req, res) => {
         }
 
         // Lógica para el Sexo (1=M, 2=F, 3=NB)
-        let valorSexo = 3; // Por defecto NB
+        let valorSexo = 3;
         if (sexo === 'M') valorSexo = 1;
         if (sexo === 'F') valorSexo = 2;
 
@@ -69,7 +69,7 @@ app.post('/api/usuarios/crear', async (req, res) => {
             .input('apellidopaterno', sql.VarChar, apellidoPaterno)
             .input('apellidomaterno', sql.VarChar, apellidoMaterno || '')
             .input('foto', sql.VarBinary, fotoBuffer)
-            .input('sexo', sql.TinyInt, valorSexo) // <--- USAMOS LA VARIABLE CALCULADA
+            .input('sexo', sql.TinyInt, valorSexo)
             .input('activo', sql.TinyInt, 1)
             .input('status', sql.VarChar, 'Activo')
             .input('fechacreacion', sql.DateTime, new Date())
@@ -93,7 +93,7 @@ app.post('/api/usuarios/crear', async (req, res) => {
     }
 });
 
-// 4. Buscar Horario por ID y Fecha Actual
+// 4. Buscar Horario (Este es diferente, se queda)
 app.get('/api/horario/:idUsuario', async (req, res) => {
     try {
         const { idUsuario } = req.params;
@@ -119,7 +119,8 @@ app.get('/api/horario/:idUsuario', async (req, res) => {
     }
 });
 
-// 5. Buscar Usuario por Matrícula (GET) - EL BUENO
+// 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
+// Este endpoint maneja TANTO el escáner (datos crudos) COMO el formulario (datos formateados)
 app.get('/api/usuarios/:matricula', async (req, res) => {
     try {
         const { matricula } = req.params;
@@ -129,26 +130,39 @@ app.get('/api/usuarios/:matricula', async (req, res) => {
             .input('usuario', sql.VarChar, matricula)
             .execute('BuscarUsuario');
 
-        if (result && result.recordset.length > 0) {
-            const usuario = result.recordset[0];
+        // Validamos que exista resultado
+        if (result && result.recordset && result.recordset.length > 0) {
+            // Obtenemos el objeto crudo de la BD (Con mayúsculas: Nombre, Usuario...)
+            const usuarioRaw = result.recordset[0];
 
+            // 1. Procesamos la foto para que sirva en ambos casos
             let fotoBase64 = null;
-            if (usuario.Foto) {
-                fotoBase64 = `data:image/jpeg;base64,${Buffer.from(usuario.Foto).toString('base64')}`;
+            if (usuarioRaw.Foto) {
+                fotoBase64 = `data:image/jpeg;base64,${Buffer.from(usuarioRaw.Foto).toString('base64')}`;
             }
 
-            // Enviamos los datos mapeados correctamente para React
-            res.json({
-                matricula: usuario.Usuario,
-                nombres: usuario.Nombre,
-                apellidoPaterno: usuario.ApellidoPaterno,
-                apellidoMaterno: usuario.ApellidoMaterno,
-                carrera: usuario.Puesto,
-                // Mapeo inverso: BD -> Frontend
-                sexo: usuario.Sexo === 1 ? 'M' : (usuario.Sexo === 2 ? 'F' : 'NB'),
-                observaciones: usuario.Observaciones,
+            // Actualizamos el objeto crudo con la foto en Base64 (Para el Escáner)
+            usuarioRaw.Foto = fotoBase64;
+
+            // 2. Preparamos el objeto mapeado (Para el Formulario)
+            const usuarioFormateado = {
+                matricula: usuarioRaw.Usuario,
+                nombres: usuarioRaw.Nombre,
+                apellidoPaterno: usuarioRaw.ApellidoPaterno,
+                apellidoMaterno: usuarioRaw.ApellidoMaterno,
+                carrera: usuarioRaw.Puesto,
+                sexo: usuarioRaw.Sexo === 1 ? 'M' : (usuarioRaw.Sexo === 2 ? 'F' : 'NB'),
+                observaciones: usuarioRaw.Observaciones,
                 foto: fotoBase64
+            };
+
+            // 3. ¡FUSIÓN! Devolvemos TODO junto. 
+            // React tomará lo que necesite y el Escáner tomará lo suyo.
+            res.json({
+                ...usuarioRaw,       // Aquí van: Nombre, Puesto, Usuario... (Para el Escáner)
+                ...usuarioFormateado // Aquí van: nombres, carrera, matricula... (Para el Formulario)
             });
+
         } else {
             res.status(404).json({ mensaje: 'Usuario no encontrado' });
         }
