@@ -10,7 +10,11 @@ export const RegistroUsuario = () => {
         apellidoMaterno: '',
         grado: '',
         grupo: '',
+<<<<<<< Updated upstream
         carrera: 'Contador Público', // Valor por defecto
+=======
+        carrera: '--Selecciona una carrera---',
+>>>>>>> Stashed changes
         sexo: 'M',
         observaciones: ''
     });

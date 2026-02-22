@@ -99,6 +99,163 @@ app.get('/api/horario/:idUsuario', async (req, res) => {
     }
 });
 
+<<<<<<< Updated upstream
+=======
+// 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
+// Este endpoint maneja TANTO el escáner (datos crudos) COMO el formulario (datos formateados)
+app.get('/api/usuarios/:matricula', async (req, res) => {
+    try {
+        const { matricula } = req.params;
+        const pool = await getConnection();
+
+        const result = await pool?.request()
+            .input('usuario', sql.VarChar, matricula)
+            .execute('BuscarUsuario');
+
+        // Validamos que exista resultado
+        if (result && result.recordset && result.recordset.length > 0) {
+            // Obtenemos el objeto crudo de la BD (Con mayúsculas: Nombre, Usuario...)
+            const usuarioRaw = result.recordset[0];
+
+            // 1. Procesamos la foto para que sirva en ambos casos
+            let fotoBase64 = null;
+            if (usuarioRaw.Foto) {
+                fotoBase64 = `data:image/jpeg;base64,${Buffer.from(usuarioRaw.Foto).toString('base64')}`;
+            }
+
+            // Actualizamos el objeto crudo con la foto en Base64 (Para el Escáner)
+            usuarioRaw.Foto = fotoBase64;
+
+            // 2. Preparamos el objeto mapeado (Para el Formulario)
+            const usuarioFormateado = {
+                matricula: usuarioRaw.Usuario,
+                nombres: usuarioRaw.Nombre,
+                apellidoPaterno: usuarioRaw.ApellidoPaterno,
+                apellidoMaterno: usuarioRaw.ApellidoMaterno,
+                carrera: usuarioRaw.Puesto,
+                sexo: usuarioRaw.Sexo === 1 ? 'M' : (usuarioRaw.Sexo === 2 ? 'F' : 'NB'),
+                observaciones: usuarioRaw.Observaciones,
+                foto: fotoBase64
+            };
+
+            // 3. ¡FUSIÓN! Devolvemos TODO junto. 
+            // React tomará lo que necesite y el Escáner tomará lo suyo.
+            res.json({
+                ...usuarioRaw,       // Aquí van: Nombre, Puesto, Usuario... (Para el Escáner)
+                ...usuarioFormateado // Aquí van: nombres, carrera, matricula... (Para el Formulario)
+            });
+
+        } else {
+            res.status(404).json({ mensaje: 'Usuario no encontrado' });
+        }
+
+    } catch (error: any) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 6. Registrar Nuevo Maestro y sus Horarios (INSERT)
+app.post('/api/maestros/crear', async (req, res) => {
+    try {
+        const {
+            numeroEmpleado, nombres, apellidoPaterno, apellidoMaterno,
+            gradoAcademico, correo, sexo, observaciones,
+            fotoBase64,
+            horario // Arreglo con las materias asignadas
+        } = req.body;
+
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión a BD");
+
+        // Convertir Base64 a Binario
+        let fotoBuffer = null;
+        if (fotoBase64) {
+            const base64Data = fotoBase64.split(';base64,').pop();
+            fotoBuffer = Buffer.from(base64Data, 'base64');
+        }
+
+// Convertir 'M' o 'F' a texto completo para que se vea bien en la tabla
+        let valorSexo = 'No Binario';
+        if (sexo === 'M') valorSexo = 'Masculino';
+        if (sexo === 'F') valorSexo = 'Femenino';
+
+        // PASO 1: Guardar al Maestro en la NUEVA tabla 'Maestros'
+        await pool.request()
+            .input('matricula', sql.VarChar, numeroEmpleado)
+            .input('nombre', sql.VarChar, nombres)
+            .input('apellidoPaterno', sql.VarChar, apellidoPaterno)
+            .input('apellidoMaterno', sql.VarChar, apellidoMaterno || '')
+            .input('gradoAcademico', sql.VarChar, gradoAcademico || 'Licenciatura')
+            .input('sexo', sql.VarChar, valorSexo)
+            .input('correo', sql.VarChar, correo || '')
+            .input('foto', sql.VarBinary, fotoBuffer)
+            .execute('RegistrarMaestro');
+
+        // PASO 2: Guardar las materias en el Horario
+        const nombreCompletoMaestro = `${nombres} ${apellidoPaterno} ${apellidoMaterno || ''}`.trim().toUpperCase();
+
+        if (horario && horario.length > 0) {
+            for (const clase of horario) {
+                const lunes = clase.dias.includes('L') ? 1 : 0;
+                const martes = clase.dias.includes('M') ? 1 : 0;
+                const miercoles = clase.dias.includes('X') ? 1 : 0;
+                const jueves = clase.dias.includes('J') ? 1 : 0;
+                const viernes = clase.dias.includes('V') ? 1 : 0;
+
+                // SOLUCIÓN ZONA HORARIA: Forzamos el formato estricto de SQL Server (Año 1900)
+                // y lo enviamos como cadena de texto (VarChar) para evitar que Node.js lo altere.
+                const horaInicioStr = `1900-01-01 ${clase.horaInicio}:00.000`;
+                const horaFinStr = `1900-01-01 ${clase.horaFin}:00.000`;
+
+                await pool.request()
+                    .input('maestro', sql.VarChar, nombreCompletoMaestro)
+                    .input('materia', sql.VarChar, clase.materia)
+                    .input('hora_inicio', sql.VarChar, horaInicioStr) // <--- Cambio clave
+                    .input('hora_fin', sql.VarChar, horaFinStr)       // <--- Cambio clave
+                    .input('grupo', sql.Char, clase.grupo) 
+                    .input('semestre', sql.Int, parseInt(clase.semestre)) 
+                    .input('lunes', sql.TinyInt, lunes)
+                    .input('martes', sql.TinyInt, martes)
+                    .input('miercoles', sql.TinyInt, miercoles)
+                    .input('jueves', sql.TinyInt, jueves)
+                    .input('viernes', sql.TinyInt, viernes)
+                    .input('idarea', sql.Int, parseInt(clase.idarea) || 1) 
+                    .input('salon', sql.VarChar, clase.salon) 
+                    .input('carrera', sql.VarChar, clase.carrera) 
+                    .execute('RegistrarHorarioCSV');
+            }
+        }
+
+        res.json({ mensaje: 'Maestro y horario registrados con éxito' });
+
+    } catch (error: any) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 7. Obtener lista de Materias Activas sin repetir
+app.get('/api/materias', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        if (!pool) throw new Error("No hay conexión");
+
+        // Usamos DISTINCT para que si 3 maestros dan "E-COMMERCE", solo salga una vez en la lista
+        const result = await pool.request().query(`
+            SELECT DISTINCT Materia 
+            FROM Asignaturas 
+            WHERE activo = 1 
+            ORDER BY Materia ASC
+        `);
+        
+        res.json(result.recordset);
+    } catch (error: any) {
+        res.status(500).send(error.message);
+    }
+});
+
+>>>>>>> Stashed changes
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Backend corriendo en http://localhost:${PORT}`);

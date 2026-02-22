@@ -11,8 +11,12 @@ const dbSettings = {
     options: {
         encrypt: false,
         trustServerCertificate: true,
+<<<<<<< Updated upstream
         instanceName: 'RAM',// <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
         enableArithAbort: true
+=======
+        instanceName: 'RAM' // <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
+>>>>>>> Stashed changes
     },
 };
 
