@@ -16,7 +16,7 @@ interface UsuarioData {
     ubicacion: string;    // Carrera o Departamento (LNI, LA...)
     foto?: string;        // Base64
     statusAcceso: 'PERMITIDO' | 'DENEGADO';
-
+    
     // Datos Dinámicos del Horario (SP BuscarHorarioByUserAndDate)
     materiaActual: string;
     aulaActual: string;
@@ -25,28 +25,57 @@ interface UsuarioData {
     horarioClase: string; // Ej: "08:00 - 09:00"
 }
 
+<<<<<<< Updated upstream
+export const RegistroEntrada: React.FC<Props> = ({ 
+    onNavigateToRegister, 
+    onNavigateToCarga, 
+    onNavigateToMaestros // Desestructuramos
+=======
 export const RegistroEntrada: React.FC<Props> = ({
     onNavigateToRegister,
     onNavigateToCarga,
     onNavigateToMaestros
+>>>>>>> Stashed changes
 }) => {
     const [codigoInput, setCodigoInput] = useState('');
     const [usuario, setUsuario] = useState<UsuarioData | null>(null);
     const [mensaje, setMensaje] = useState('ESPERANDO ESCANEO...');
-
+    
     // Referencia para mantener el foco siempre en el input (modo kiosco)
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const focusInput = () => inputRef.current?.focus();
         focusInput();
+<<<<<<< Updated upstream
+        const interval = setInterval(focusInput, 3000); 
+=======
         // Reintentar foco cada 3 segs por si el usuario hace click fuera
         const interval = setInterval(focusInput, 3000);
+>>>>>>> Stashed changes
         return () => clearInterval(interval);
     }, []);
 
     const handleScan = async (e: React.FormEvent) => {
         e.preventDefault();
+<<<<<<< Updated upstream
+        // Lógica simulada...
+        if (codigo === '12345') {
+             setAlumno({
+                nombre: 'HUMBERTO CALLES DÍAZ',
+                matricula: '2183345',
+                carrera: 'Lic. en Tecnologías',
+                grupo: '8° A',
+                aula: 'LABORATORIO 4',
+                horario: '08:00 - 10:00',
+                foto: 'https://i.pravatar.cc/400?img=11',
+                statusAcceso: 'PERMITIDO'
+            });
+            setMensaje('');
+        } else {
+            setAlumno(null);
+            setMensaje('❌ CÓDIGO NO ENCONTRADO');
+=======
         if (!codigoInput.trim()) return;
 
         setMensaje('BUSCANDO EN BD...');
@@ -75,19 +104,19 @@ export const RegistroEntrada: React.FC<Props> = ({
                 if (dataUser.idUsuario) {
                     try {
                         const resHorario = await fetch(`http://localhost:3000/api/horario/${dataUser.idUsuario}`);
-
+                        
                         if (resHorario.ok) {
                             const dataHorario = await resHorario.json();
-
+                            
                             // Si el SP devolvió un objeto (no null), es que TIENE CLASE AHORA
                             if (dataHorario) {
                                 materia = dataHorario.Materia;
                                 maestro = dataHorario.Maestro;
                                 // Ajuste por si el idArea es numérico en BD
-                                aula = `AULA ${dataHorario.idArea}`;
+                                aula = `AULA ${dataHorario.idArea}`; 
                                 grupoReal = dataHorario.Grupo;
                                 // Si tu SP devolviera horas, las pondríamos aquí, si no, lo dejamos genérico o calculado
-                                horaClase = "EN CURSO";
+                                horaClase = "EN CURSO"; 
                             }
                         }
                     } catch (err) {
@@ -95,7 +124,7 @@ export const RegistroEntrada: React.FC<Props> = ({
                         // No bloqueamos el acceso, solo mostramos datos básicos
                     }
                 }
-
+                
                 // -----------------------------------------------------------
                 // PASO 3: Construir el Objeto Final para la Vista
                 // -----------------------------------------------------------
@@ -105,7 +134,7 @@ export const RegistroEntrada: React.FC<Props> = ({
                     puesto: dataUser.Puesto || 'Usuario',
                     ubicacion: dataUser.Ubicacion || 'Sin Asignar',
                     foto: dataUser.Foto || undefined, // Viene en Base64 desde el backend
-
+                    
                     // Lógica de acceso: Si Activo=1 -> Permitido, si no -> Denegado
                     statusAcceso: dataUser.Activo === 1 ? 'PERMITIDO' : 'DENEGADO',
 
@@ -127,6 +156,7 @@ export const RegistroEntrada: React.FC<Props> = ({
         } catch (error) {
             console.error("Error crítico de conexión:", error);
             setMensaje('⚠️ ERROR DE CONEXIÓN CON SERVIDOR');
+>>>>>>> Stashed changes
         }
 
         setCodigoInput(''); // Limpiar input para el siguiente escaneo rápido
@@ -152,22 +182,36 @@ export const RegistroEntrada: React.FC<Props> = ({
                                 type="text"
                                 placeholder="..."
                                 className="input-field big-input scanner-input"
+<<<<<<< Updated upstream
+                                value={codigo}
+                                onChange={(e) => setCodigo(e.target.value)}
+                                autoFocus 
+                                autoComplete="off"
+                            />
+                            
+=======
                                 value={codigoInput}
                                 onChange={(e) => setCodigoInput(e.target.value)}
                                 autoFocus
                                 autoComplete="off"
                             />
+>>>>>>> Stashed changes
                             <button type="submit" className="btn-enter">
-                                Escanear <span className="material-icons">login</span>
+                                ENTRAR <span className="material-icons">login</span>
                             </button>
                         </form>
 
                         <div className="action-buttons-grid">
+<<<<<<< Updated upstream
+                            
+                            {/* Fila Superior: Registros */}
+=======
+>>>>>>> Stashed changes
                             <button className="btn-secondary-action" onClick={onNavigateToRegister}>
                                 <span className="material-icons">person_add</span>
                                 Registrar Alumno
                             </button>
-
+                            
                             <button className="btn-secondary-action" onClick={onNavigateToMaestros}>
                                 <span className="material-icons">school</span>
                                 Registrar Maestro
@@ -182,7 +226,7 @@ export const RegistroEntrada: React.FC<Props> = ({
 
                     {/* --- COLUMNA DERECHA: RESULTADO VISUAL --- */}
                     <div className={`login-section right-section info-panel ${usuario ? 'active-scan' : 'idle-scan'}`}>
-
+                        
                         <div className="photo-frame">
                             {usuario && usuario.foto ? (
                                 <img src={usuario.foto} alt="Foto usuario" className="user-photo-real" />
@@ -190,20 +234,20 @@ export const RegistroEntrada: React.FC<Props> = ({
                                 <span className="material-icons user-icon-big">person_outline</span>
                             )}
                         </div>
-
+                        
                         <div className="user-display-info">
                             {usuario ? (
                                 <>
                                     <h2 className="student-name">{usuario.nombreCompleto}</h2>
-
+                                    
                                     {/* Badge de Estado: Verde o Rojo */}
-                                    <div
+                                    <div 
                                         className="access-badge pulse-animation"
                                         style={{ backgroundColor: usuario.statusAcceso === 'PERMITIDO' ? 'var(--success)' : 'var(--danger)' }}
                                     >
                                         {usuario.statusAcceso}
                                     </div>
-
+                                    
                                     <div className="details-grid">
                                         <div className="detail-item">
                                             <span className="label">MATRÍCULA / PUESTO</span>
@@ -224,7 +268,7 @@ export const RegistroEntrada: React.FC<Props> = ({
                                         <div className="detail-item full-width-item">
                                             <span className="label">ACTIVIDAD / MATERIA ACTUAL</span>
                                             <div className="value">{usuario.materiaActual}</div>
-
+                                            
                                             {/* Solo mostramos maestro si existe una clase asignada */}
                                             {usuario.maestroActual && (
                                                 <small style={{ color: '#666', display: 'block', marginTop: '5px', fontSize: '0.9rem' }}>

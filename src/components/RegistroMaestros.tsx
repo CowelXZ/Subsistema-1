@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import './RegistroMaestros.css';
+<<<<<<< Updated upstream
+
+// Tipos para el horario
+type DiaSemana = 'L' | 'M' | 'X' | 'J' | 'V' | 'S';
+=======
 import { Header } from './common/Header';
+import Webcam from 'react-webcam';
 
 interface Props {
     onBack: () => void;
 }
-// Tipos para el horario
-type DiaSemana = 'L' | 'M' | 'X' | 'J' | 'V' | 'S';
+
+// ¡Adiós al sábado ('S')!
+type DiaSemana = 'L' | 'M' | 'MM' | 'J' | 'V';
+>>>>>>> Stashed changes
 
 interface Asignatura {
     id: number;
@@ -14,110 +22,230 @@ interface Asignatura {
     horaInicio: string;
     horaFin: string;
     dias: DiaSemana[];
+    semestre: string;
+    grupo: string;
+    carrera: string;
+    salon: string;
+    idarea: string;
 }
 
-export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
+<<<<<<< Updated upstream
+export const RegistroMaestros = () => {
     // --- ESTADO: Datos del Maestro ---
+=======
+export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
+    // --- ESTADO: Listas desde BD ---
+    const [listaCarreras, setListaCarreras] = useState<any[]>([]);
+    const [listaMaterias, setListaMaterias] = useState<any[]>([]); 
+
+    useEffect(() => {
+        fetch('http://localhost:3000/api/carreras')
+            .then(res => res.json())
+            .then(data => setListaCarreras(data))
+            .catch(err => console.error("Error cargando carreras:", err));
+
+        fetch('http://localhost:3000/api/materias')
+            .then(res => res.json())
+            .then(data => setListaMaterias(data))
+            .catch(err => console.error("Error cargando materias:", err));
+    }, []);
+
+    // --- ESTADO: Datos del Maestro (Sin Grado Académico) ---
+>>>>>>> Stashed changes
     const [teacherData, setTeacherData] = useState({
         numeroEmpleado: '',
         nombres: '',
         apellidoPaterno: '',
         apellidoMaterno: '',
-        gradoAcademico: 'Licenciatura',
         correo: '',
         sexo: 'M',
         observaciones: ''
     });
 
-    // --- ESTADO: Lista de Horarios Agregados ---
+    // --- ESTADO: Horario y Nueva Materia ---
     const [horario, setHorario] = useState<Asignatura[]>([]);
 
-    // --- ESTADO: Formulario para Nueva Hora ---
     const [nuevaMateria, setNuevaMateria] = useState({
         materia: '',
         horaInicio: '',
         horaFin: '',
-        dias: [] as DiaSemana[]
+        dias: [] as DiaSemana[],
+        semestre: '1',
+        grupo: 'A',
+        carrera: '',
+        salon: 'AULA 1',
+        idarea: '1'
     });
 
-    // Manejador genérico para datos del maestro
+    // --- CÁMARA ---
+    const [imgSrc, setImgSrc] = useState<string | null>(null);
+    const webcamRef = useRef<Webcam>(null);
+
+    const capturarFoto = useCallback(() => {
+        if (webcamRef.current) {
+            setImgSrc(webcamRef.current.getScreenshot());
+        }
+    }, [webcamRef]);
+
+    const limpiarFoto = () => setImgSrc(null);
+
+    // --- MANEJADORES DE CAMBIOS ---
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setTeacherData(prev => ({ ...prev, [name]: value }));
+        setTeacherData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    // Manejador para el formulario de nueva materia
-    const handleMateriaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setNuevaMateria(prev => ({ ...prev, [name]: value }));
+    const handleMateriaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setNuevaMateria(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    // Toggle para selección de días
     const toggleDia = (dia: DiaSemana) => {
-        setNuevaMateria(prev => {
-            const existe = prev.dias.includes(dia);
-            return {
-                ...prev,
-                dias: existe ? prev.dias.filter(d => d !== dia) : [...prev.dias, dia]
-            };
-        });
+        setNuevaMateria(prev => ({
+            ...prev,
+            dias: prev.dias.includes(dia) ? prev.dias.filter(d => d !== dia) : [...prev.dias, dia]
+        }));
     };
 
-    // Agregar nueva materia a la lista
+    // --- LÓGICA DE AGREGAR/ELIMINAR MATERIA ---
     const agregarMateria = () => {
         if (!nuevaMateria.materia || !nuevaMateria.horaInicio || !nuevaMateria.horaFin || nuevaMateria.dias.length === 0) {
-            alert("Por favor completa todos los campos del horario y selecciona al menos un día.");
+            alert("Por favor completa todos los campos del horario (Materia, Horas y Días).");
             return;
         }
 
+<<<<<<< Updated upstream
         const nuevaAsignatura: Asignatura = {
             id: Date.now(),
             ...nuevaMateria
         };
 
         setHorario([...horario, nuevaAsignatura]);
-
+        
         // Resetear formulario de materia
         setNuevaMateria({ ...nuevaMateria, materia: '', horaInicio: '', horaFin: '', dias: [] });
+=======
+        setHorario([...horario, { id: Date.now(), ...nuevaMateria }]);
+        
+        setNuevaMateria(prev => ({ 
+            ...prev, 
+            materia: '', 
+            horaInicio: '', 
+            horaFin: '', 
+            dias: [] 
+        }));
+>>>>>>> Stashed changes
     };
 
-    // Eliminar materia de la lista
-    const eliminarMateria = (id: number) => {
-        setHorario(horario.filter(h => h.id !== id));
+    const eliminarMateria = (id: number) => setHorario(horario.filter(h => h.id !== id));
+
+    // --- GUARDAR EN BASE DE DATOS ---
+    const guardarEnBaseDeDatos = async () => {
+        if (!teacherData.numeroEmpleado || !teacherData.nombres) {
+            alert("El número de empleado y el nombre son obligatorios.");
+            return;
+        }
+
+        try {
+            const datosParaEnviar = {
+                ...teacherData,
+                fotoBase64: imgSrc,
+                horario: horario 
+            };
+
+            const respuesta = await fetch('http://localhost:3000/api/maestros/crear', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosParaEnviar)
+            });
+
+            if (respuesta.ok) {
+                alert("✅ ¡Maestro y Horarios Guardados Exitosamente!");
+                setImgSrc(null);
+                setHorario([]);
+                // Reiniciamos los campos
+                setTeacherData({ 
+                    numeroEmpleado: '', nombres: '', apellidoPaterno: '', apellidoMaterno: '',
+                    correo: '', sexo: 'M', observaciones: '' 
+                });
+            } else {
+                const errorTexto = await respuesta.text();
+                alert("❌ Error al guardar: " + errorTexto);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error de conexión con el servidor.");
+        }
+    };
+
+    // --- BÚSQUEDA DE EMPLEADO EXISTENTE ---
+    const buscarPorEmpleado = async () => {
+        if (!teacherData.numeroEmpleado) return;
+        try {
+            const res = await fetch(`http://localhost:3000/api/usuarios/${teacherData.numeroEmpleado}`);
+            if (res.ok) {
+                const data = await res.json();
+                setTeacherData(prev => ({
+                    ...prev,
+                    nombres: data.nombres,
+                    apellidoPaterno: data.apellidoPaterno,
+                    apellidoMaterno: data.apellidoMaterno || '',
+                    correo: data.observaciones || '', 
+                    sexo: data.sexo || 'M'
+                }));
+                if (data.foto) setImgSrc(data.foto);
+                alert("Docente encontrado. Modo edición activado.");
+            } else {
+                alert("Docente no encontrado. Puedes registrarlo como nuevo.");
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
         <div className="main-wrapper">
-            {/* --- HEADER (Simulado según tu código anterior) --- */}
+<<<<<<< Updated upstream
+            <header className="top-bar">
+                <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
+                <h1>Registro de Maestros</h1>
+                <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
+            </header>
+
+            <main className="dashboard-grid maestros-grid">
+                
+                {/* --- COLUMNA IZQUIERDA: FORMULARIOS --- */}
+                <div className="left-column-stack">
+                    
+                    {/* SECCIÓN 1: DATOS DEL MAESTRO */}
+=======
             <Header titulo="Registro de Maestros" onBack={onBack} />
 
             <main className="dashboard-grid maestros-grid">
 
-                {/* --- COLUMNA IZQUIERDA: FORMULARIOS --- */}
+                {/* --- COLUMNA IZQUIERDA --- */}
                 <div className="left-column-stack">
-
-                    {/* SECCIÓN 1: DATOS DEL MAESTRO */}
+>>>>>>> Stashed changes
                     <section className="card">
                         <div className="card-header">
-                            <div>
-                                <h2>Datos del Maestro</h2>
-                                <small>Información Personal y Laboral</small>
-                            </div>
+                            <h2>Datos del Maestro</h2>
                         </div>
-
                         <form className="user-form">
                             <div className="form-group">
                                 <label>Número de Empleado</label>
                                 <div className="search-wrapper">
-                                    <input
-                                        name="numeroEmpleado"
-                                        type="text"
-                                        placeholder="Ej. 12345"
-                                        className="input-field search-input"
-                                        value={teacherData.numeroEmpleado}
-                                        onChange={handleChange}
+                                    <input 
+                                        name="numeroEmpleado" 
+                                        type="text" 
+                                        className="input-field search-input" 
+                                        value={teacherData.numeroEmpleado} 
+                                        onChange={handleChange} 
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                buscarPorEmpleado();
+                                            }
+                                        }} 
                                     />
-                                    <button type="button" className="search-btn">
+                                    <button type="button" className="search-btn" onClick={buscarPorEmpleado}>
                                         <span className="material-icons">search</span>
                                     </button>
                                 </div>
@@ -127,54 +255,111 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                 <label>Nombre(s)</label>
                                 <input name="nombres" type="text" className="input-field" value={teacherData.nombres} onChange={handleChange} />
                             </div>
-
+                            
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Apellido Paterno</label>
+                                    <label>Ap. Paterno</label>
                                     <input name="apellidoPaterno" type="text" className="input-field" value={teacherData.apellidoPaterno} onChange={handleChange} />
                                 </div>
                                 <div className="form-group">
-                                    <label>Apellido Materno</label>
+                                    <label>Ap. Materno</label>
                                     <input name="apellidoMaterno" type="text" className="input-field" value={teacherData.apellidoMaterno} onChange={handleChange} />
                                 </div>
                             </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Grado Académico</label>
-                                    <select name="gradoAcademico" className="input-field" value={teacherData.gradoAcademico} onChange={handleChange}>
-                                        <option>Licenciatura</option>
-                                        <option>Maestría</option>
-                                        <option>Doctorado</option>
-                                    </select>
-                                </div>
-                                {/* AQUÍ MOVIMOS EL CORREO PARA APROVECHAR EL ESPACIO */}
-                                <div className="form-group">
-                                    <label>Correo Institucional</label>
-                                    <input name="correo" type="email" className="input-field" value={teacherData.correo} onChange={handleChange} />
+                            <div className="form-group">
+                                <label>Correo Institucional</label>
+                                <input name="correo" type="email" className="input-field" value={teacherData.correo} onChange={handleChange} />
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Sexo</label>
+                                <div className="radio-group">
+                                    <label><input type="radio" name="sexo" value="M" checked={teacherData.sexo === 'M'} onChange={handleChange} /> Masculino</label>
+                                    <label><input type="radio" name="sexo" value="F" checked={teacherData.sexo === 'F'} onChange={handleChange} /> Femenino</label>
+                                    <label><input type="radio" name="sexo" value="NB" checked={teacherData.sexo === 'NB'} onChange={handleChange} /> No Binario</label>
                                 </div>
                             </div>
                         </form>
                     </section>
 
-                    {/* SECCIÓN 2: REGISTRO DE HORAS */}
+                    {/* REGISTRO DE HORAS */}
                     <section className="card hours-section">
                         <div className="card-header">
-                            <h2>Registro de Horas</h2>
+                            <h2>Agregar Materia</h2>
                         </div>
                         <div className="user-form">
+                            
                             <div className="form-group">
                                 <label>Materia</label>
-                                <input
-                                    name="materia"
-                                    type="text"
-                                    placeholder="Nombre de la asignatura"
-                                    className="input-field"
-                                    value={nuevaMateria.materia}
-                                    onChange={handleMateriaChange}
+<<<<<<< Updated upstream
+                                <input 
+                                    name="materia" 
+                                    type="text" 
+                                    placeholder="Nombre de la asignatura" 
+                                    className="input-field" 
+                                    value={nuevaMateria.materia} 
+                                    onChange={handleMateriaChange} 
                                 />
+=======
+                                <select 
+                                    name="materia" 
+                                    className="input-field" 
+                                    value={nuevaMateria.materia} 
+                                    onChange={handleMateriaChange}
+                                >
+                                    <option value="">Seleccione una materia...</option>
+                                    {listaMaterias.map((m, index) => (
+                                        <option key={index} value={m.Materia}>
+                                            {m.Materia}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Carrera</label>
+                                    <select name="carrera" className="input-field" value={nuevaMateria.carrera} onChange={handleMateriaChange}>
+                                        <option value="">Seleccione...</option>
+                                        {listaCarreras.map(c => (
+                                            <option key={c.idCarrera} value={c.NombreCarrera}>{c.NombreCarrera}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Salón / Área</label>
+                                    <select name="salon" className="input-field" value={nuevaMateria.salon} onChange={handleMateriaChange}>
+                                        <option value="AULA 1">AULA 1</option>
+                                        <option value="AULA 2">AULA 2</option>
+                                        <option value="AULA 3">AULA 3</option>
+                                        <option value="LABORATORIO 1">LABORATORIO 1</option>
+                                        <option value="LABORATORIO 2">LABORATORIO 2</option>
+                                        <option value="CENTRO DE CÓMPUTO">CENTRO DE CÓMPUTO</option>
+                                    </select>
+                                </div>
                             </div>
 
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Semestre</label>
+                                    <select name="semestre" className="input-field" value={nuevaMateria.semestre} onChange={handleMateriaChange}>
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
+                                            <option key={s} value={s}>{s}° Semestre</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Grupo</label>
+                                    <select name="grupo" className="input-field" value={nuevaMateria.grupo} onChange={handleMateriaChange}>
+                                        {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(g => (
+                                            <option key={g} value={g}>Grupo {g}</option>
+                                        ))}
+                                    </select>
+                                </div>
+>>>>>>> Stashed changes
+                            </div>
+                            
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Hora Inicio</label>
@@ -189,11 +374,12 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                             <div className="form-group">
                                 <label className="label-centered">Días de Clase</label>
                                 <div className="days-selector">
-                                    {['L', 'M', 'X', 'J', 'V', 'S'].map((dia) => (
-                                        <button
-                                            key={dia}
-                                            type="button"
-                                            className={`btn-day ${nuevaMateria.dias.includes(dia as DiaSemana) ? 'active' : ''}`}
+                                    {/* ¡Adiós al botón de Sábado! */}
+                                    {['L', 'M', 'MM', 'J', 'V'].map(dia => (
+                                        <button 
+                                            key={dia} 
+                                            type="button" 
+                                            className={`btn-day ${nuevaMateria.dias.includes(dia as DiaSemana) ? 'active' : ''}`} 
                                             onClick={() => toggleDia(dia as DiaSemana)}
                                         >
                                             {dia}
@@ -201,23 +387,28 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                     ))}
                                 </div>
                             </div>
-
                             <button type="button" onClick={agregarMateria} className="btn-add-hour">
-                                <span className="material-icons">add_circle</span> AGREGAR HORA
+                                <span className="material-icons">add_circle</span> AGREGAR MATERIA
                             </button>
                         </div>
                     </section>
                 </div>
 
-                {/* --- COLUMNA DERECHA: LISTA Y CÁMARA --- */}
+                {/* --- COLUMNA DERECHA --- */}
                 <div className="right-column-stack">
-
+<<<<<<< Updated upstream
+                    
                     {/* SECCIÓN 3: LISTA DE HORARIOS */}
+=======
+>>>>>>> Stashed changes
                     <section className="card schedule-card">
                         <div className="card-header">
-                            <h2>Horario Asignado</h2>
+                            <h2>Horario Asignado ({horario.length})</h2>
                         </div>
-
+<<<<<<< Updated upstream
+                        
+=======
+>>>>>>> Stashed changes
                         <div className="schedule-list-container">
                             {horario.length === 0 ? (
                                 <div className="empty-state">
@@ -229,20 +420,22 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                     <thead>
                                         <tr>
                                             <th>Materia</th>
+                                            <th>Grupo/Sem</th>
                                             <th className="text-center">Horario</th>
-                                            <th className="text-center">Días</th>
                                             <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {horario.map((item) => (
+                                        {horario.map(item => (
                                             <tr key={item.id}>
-                                                <td className="fw-bold">{item.materia}</td>
+                                                <td className="fw-bold">
+                                                    {item.materia}<br/>
+                                                    <small>{item.carrera || 'N/A'} - {item.salon}</small>
+                                                </td>
+                                                <td>{item.semestre}° {item.grupo}</td>
                                                 <td className="text-center text-sm">
                                                     {item.horaInicio} - {item.horaFin}
-                                                </td>
-                                                <td className="text-center">
-                                                    <div className="days-badge-group">
+                                                    <div className="days-badge-group" style={{marginTop: '4px'}}>
                                                         {item.dias.map(d => (
                                                             <span key={d} className="badge-day">{d}</span>
                                                         ))}
@@ -261,37 +454,61 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                         </div>
                     </section>
 
-                    {/* SECCIÓN 4: CÁMARA (COMPACTA) */}
+                    {/* CÁMARA */}
                     <section className="card camera-card-compact">
                         <div className="card-header compact-header">
                             <h2>Fotografía</h2>
-                            <button className="btn-outline btn-sm">
-                                <span className="material-icons">photo_camera</span> Activar
-                            </button>
+                            {!imgSrc && (
+                                <button className="btn-outline btn-sm" onClick={capturarFoto}>
+                                    <span className="material-icons">photo_camera</span> Capturar
+                                </button>
+                            )}
                         </div>
-
                         <div className="camera-container compact-view">
                             <div className="camera-viewport viewport-sm">
-                                <img src="/img/foto-logo2.jpg" alt="Vista Previa" className="video-feed" />
+<<<<<<< Updated upstream
+                                <img src="/img/video-placeholder.png" alt="Vista Previa" className="video-feed" />
+=======
+                                {imgSrc ? (
+                                    <img src={imgSrc} className="video-feed" alt="Captura de docente" />
+                                ) : (
+                                    <Webcam 
+                                        audio={false} 
+                                        ref={webcamRef} 
+                                        screenshotFormat="image/jpeg" 
+                                        className="video-feed" 
+                                        videoConstraints={{ facingMode: "user" }} 
+                                    />
+                                )}
+>>>>>>> Stashed changes
                             </div>
                         </div>
-
                         <div className="camera-actions compact-actions">
                             <div className="action-buttons-row">
-                                <button className="btn-capture btn-sm">Capturar</button>
-                                <button className="btn-clean btn-sm">Limpiar</button>
+                                {imgSrc ? (
+                                    <button className="btn-clean btn-sm" onClick={limpiarFoto} type="button">
+                                        <span className="material-icons">delete</span> Retomar Foto
+                                    </button>
+                                ) : (
+                                    <button className="btn-capture btn-sm" onClick={capturarFoto} type="button">
+                                        <span className="material-icons">camera_alt</span> Tomar Foto
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </section>
-
                 </div>
             </main>
 
             <footer className="bottom-action">
-                <button
-                    className="btn-save"
+<<<<<<< Updated upstream
+                <button 
+                    className="btn-save" 
                     onClick={() => console.log({ maestro: teacherData, horario })}
                 >
+=======
+                <button className="btn-save" onClick={guardarEnBaseDeDatos}>
+>>>>>>> Stashed changes
                     GUARDAR REGISTRO DOCENTE
                 </button>
             </footer>

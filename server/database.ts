@@ -11,7 +11,12 @@ const dbSettings = {
     options: {
         encrypt: false,
         trustServerCertificate: true,
-        instanceName: 'MSSQLSERVER02' // <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
+<<<<<<< Updated upstream
+        instanceName: 'RAM',// <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
+        enableArithAbort: true
+=======
+        instanceName: 'RAM' // <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
+>>>>>>> Stashed changes
     },
 };
 
