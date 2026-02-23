@@ -1,10 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import './RegistroMaestros.css';
-<<<<<<< Updated upstream
-
-// Tipos para el horario
-type DiaSemana = 'L' | 'M' | 'X' | 'J' | 'V' | 'S';
-=======
 import { Header } from './common/Header';
 import Webcam from 'react-webcam';
 
@@ -14,7 +9,6 @@ interface Props {
 
 // ¡Adiós al sábado ('S')!
 type DiaSemana = 'L' | 'M' | 'MM' | 'J' | 'V';
->>>>>>> Stashed changes
 
 interface Asignatura {
     id: number;
@@ -29,10 +23,6 @@ interface Asignatura {
     idarea: string;
 }
 
-<<<<<<< Updated upstream
-export const RegistroMaestros = () => {
-    // --- ESTADO: Datos del Maestro ---
-=======
 export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
     // --- ESTADO: Listas desde BD ---
     const [listaCarreras, setListaCarreras] = useState<any[]>([]);
@@ -51,7 +41,6 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
     }, []);
 
     // --- ESTADO: Datos del Maestro (Sin Grado Académico) ---
->>>>>>> Stashed changes
     const [teacherData, setTeacherData] = useState({
         numeroEmpleado: '',
         nombres: '',
@@ -112,17 +101,6 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
             return;
         }
 
-<<<<<<< Updated upstream
-        const nuevaAsignatura: Asignatura = {
-            id: Date.now(),
-            ...nuevaMateria
-        };
-
-        setHorario([...horario, nuevaAsignatura]);
-        
-        // Resetear formulario de materia
-        setNuevaMateria({ ...nuevaMateria, materia: '', horaInicio: '', horaFin: '', dias: [] });
-=======
         setHorario([...horario, { id: Date.now(), ...nuevaMateria }]);
         
         setNuevaMateria(prev => ({ 
@@ -132,7 +110,6 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
             horaFin: '', 
             dias: [] 
         }));
->>>>>>> Stashed changes
     };
 
     const eliminarMateria = (id: number) => setHorario(horario.filter(h => h.id !== id));
@@ -203,27 +180,12 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
     return (
         <div className="main-wrapper">
-<<<<<<< Updated upstream
-            <header className="top-bar">
-                <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
-                <h1>Registro de Maestros</h1>
-                <img src="/img/logo-uat.jpeg" alt="UAT" className="top-logo" />
-            </header>
-
-            <main className="dashboard-grid maestros-grid">
-                
-                {/* --- COLUMNA IZQUIERDA: FORMULARIOS --- */}
-                <div className="left-column-stack">
-                    
-                    {/* SECCIÓN 1: DATOS DEL MAESTRO */}
-=======
             <Header titulo="Registro de Maestros" onBack={onBack} />
 
             <main className="dashboard-grid maestros-grid">
 
                 {/* --- COLUMNA IZQUIERDA --- */}
                 <div className="left-column-stack">
->>>>>>> Stashed changes
                     <section className="card">
                         <div className="card-header">
                             <h2>Datos del Maestro</h2>
@@ -292,16 +254,6 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                             
                             <div className="form-group">
                                 <label>Materia</label>
-<<<<<<< Updated upstream
-                                <input 
-                                    name="materia" 
-                                    type="text" 
-                                    placeholder="Nombre de la asignatura" 
-                                    className="input-field" 
-                                    value={nuevaMateria.materia} 
-                                    onChange={handleMateriaChange} 
-                                />
-=======
                                 <select 
                                     name="materia" 
                                     className="input-field" 
@@ -357,7 +309,6 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                         ))}
                                     </select>
                                 </div>
->>>>>>> Stashed changes
                             </div>
                             
                             <div className="form-row">
@@ -396,19 +347,10 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
                 {/* --- COLUMNA DERECHA --- */}
                 <div className="right-column-stack">
-<<<<<<< Updated upstream
-                    
-                    {/* SECCIÓN 3: LISTA DE HORARIOS */}
-=======
->>>>>>> Stashed changes
                     <section className="card schedule-card">
                         <div className="card-header">
                             <h2>Horario Asignado ({horario.length})</h2>
                         </div>
-<<<<<<< Updated upstream
-                        
-=======
->>>>>>> Stashed changes
                         <div className="schedule-list-container">
                             {horario.length === 0 ? (
                                 <div className="empty-state">
@@ -466,9 +408,6 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                         </div>
                         <div className="camera-container compact-view">
                             <div className="camera-viewport viewport-sm">
-<<<<<<< Updated upstream
-                                <img src="/img/video-placeholder.png" alt="Vista Previa" className="video-feed" />
-=======
                                 {imgSrc ? (
                                     <img src={imgSrc} className="video-feed" alt="Captura de docente" />
                                 ) : (
@@ -480,7 +419,6 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                         videoConstraints={{ facingMode: "user" }} 
                                     />
                                 )}
->>>>>>> Stashed changes
                             </div>
                         </div>
                         <div className="camera-actions compact-actions">
@@ -501,14 +439,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
             </main>
 
             <footer className="bottom-action">
-<<<<<<< Updated upstream
-                <button 
-                    className="btn-save" 
-                    onClick={() => console.log({ maestro: teacherData, horario })}
-                >
-=======
                 <button className="btn-save" onClick={guardarEnBaseDeDatos}>
->>>>>>> Stashed changes
                     GUARDAR REGISTRO DOCENTE
                 </button>
             </footer>

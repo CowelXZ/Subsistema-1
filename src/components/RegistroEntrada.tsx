@@ -25,17 +25,10 @@ interface UsuarioData {
     horarioClase: string; // Ej: "08:00 - 09:00"
 }
 
-<<<<<<< Updated upstream
-export const RegistroEntrada: React.FC<Props> = ({ 
-    onNavigateToRegister, 
-    onNavigateToCarga, 
-    onNavigateToMaestros // Desestructuramos
-=======
 export const RegistroEntrada: React.FC<Props> = ({
     onNavigateToRegister,
     onNavigateToCarga,
     onNavigateToMaestros
->>>>>>> Stashed changes
 }) => {
     const [codigoInput, setCodigoInput] = useState('');
     const [usuario, setUsuario] = useState<UsuarioData | null>(null);
@@ -47,35 +40,13 @@ export const RegistroEntrada: React.FC<Props> = ({
     useEffect(() => {
         const focusInput = () => inputRef.current?.focus();
         focusInput();
-<<<<<<< Updated upstream
-        const interval = setInterval(focusInput, 3000); 
-=======
         // Reintentar foco cada 3 segs por si el usuario hace click fuera
         const interval = setInterval(focusInput, 3000);
->>>>>>> Stashed changes
         return () => clearInterval(interval);
     }, []);
 
     const handleScan = async (e: React.FormEvent) => {
         e.preventDefault();
-<<<<<<< Updated upstream
-        // Lógica simulada...
-        if (codigo === '12345') {
-             setAlumno({
-                nombre: 'HUMBERTO CALLES DÍAZ',
-                matricula: '2183345',
-                carrera: 'Lic. en Tecnologías',
-                grupo: '8° A',
-                aula: 'LABORATORIO 4',
-                horario: '08:00 - 10:00',
-                foto: 'https://i.pravatar.cc/400?img=11',
-                statusAcceso: 'PERMITIDO'
-            });
-            setMensaje('');
-        } else {
-            setAlumno(null);
-            setMensaje('❌ CÓDIGO NO ENCONTRADO');
-=======
         if (!codigoInput.trim()) return;
 
         setMensaje('BUSCANDO EN BD...');
@@ -156,7 +127,6 @@ export const RegistroEntrada: React.FC<Props> = ({
         } catch (error) {
             console.error("Error crítico de conexión:", error);
             setMensaje('⚠️ ERROR DE CONEXIÓN CON SERVIDOR');
->>>>>>> Stashed changes
         }
 
         setCodigoInput(''); // Limpiar input para el siguiente escaneo rápido
@@ -182,31 +152,17 @@ export const RegistroEntrada: React.FC<Props> = ({
                                 type="text"
                                 placeholder="..."
                                 className="input-field big-input scanner-input"
-<<<<<<< Updated upstream
-                                value={codigo}
-                                onChange={(e) => setCodigo(e.target.value)}
-                                autoFocus 
-                                autoComplete="off"
-                            />
-                            
-=======
                                 value={codigoInput}
                                 onChange={(e) => setCodigoInput(e.target.value)}
                                 autoFocus
                                 autoComplete="off"
                             />
->>>>>>> Stashed changes
                             <button type="submit" className="btn-enter">
                                 ENTRAR <span className="material-icons">login</span>
                             </button>
                         </form>
 
                         <div className="action-buttons-grid">
-<<<<<<< Updated upstream
-                            
-                            {/* Fila Superior: Registros */}
-=======
->>>>>>> Stashed changes
                             <button className="btn-secondary-action" onClick={onNavigateToRegister}>
                                 <span className="material-icons">person_add</span>
                                 Registrar Alumno

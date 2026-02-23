@@ -99,8 +99,6 @@ app.get('/api/horario/:idUsuario', async (req, res) => {
     }
 });
 
-<<<<<<< Updated upstream
-=======
 // 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 // Este endpoint maneja TANTO el escáner (datos crudos) COMO el formulario (datos formateados)
 app.get('/api/usuarios/:matricula', async (req, res) => {
@@ -255,7 +253,154 @@ app.get('/api/materias', async (req, res) => {
     }
 });
 
->>>>>>> Stashed changes
+// =====================================================================
+// ENDPOINTS PARA ASIGNACIÓN DE CARGA (Usando Horarios y Periodos)
+// =====================================================================
+
+// 8. Obtener Carga Académica (El JOIN de las 3 tablas)
+app.get('/api/maestros/carga', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión a BD");
+
+        // 1. Maestros activos
+        const maestrosResult = await pool.request().query('SELECT idMaestro, Nombre, ApellidoPaterno, ApellidoMaterno, Foto FROM Maestros WHERE Activo = 1');
+        const maestros = maestrosResult.recordset;
+
+        // 2. Traer las clases uniendo Asignaturas + Horarios + Periodos
+        const clasesResult = await pool.request().query(`
+            SELECT 
+                A.idasignatura as id, 
+                A.idMaestro, 
+                A.Materia as materia, 
+                CONVERT(varchar(5), P.hora_inicio, 108) as horaInicio, 
+                CONVERT(varchar(5), P.hora_fin, 108) as horaFin,
+                P.lunes, P.martes, P.miercoles, P.jueves, P.viernes 
+            FROM Asignaturas A
+            INNER JOIN Horarios H ON A.idasignatura = H.idasignatura
+            INNER JOIN Periodos P ON H.idperiodo = P.idperiodo
+            WHERE A.idMaestro IS NOT NULL
+        `);
+        const clasesRaw = clasesResult.recordset;
+
+        // 3. Formatear para React
+        const payload = maestros.map(m => {
+            let fotoBase64 = "https://i.pravatar.cc/150?u=" + m.idMaestro;
+            if (m.Foto) fotoBase64 = `data:image/jpeg;base64,${Buffer.from(m.Foto).toString('base64')}`;
+
+            const nombreCompleto = `${m.Nombre} ${m.ApellidoPaterno} ${m.ApellidoMaterno || ''}`.trim();
+
+            const clasesDelMaestro = clasesRaw.filter(c => c.idMaestro === m.idMaestro).map(c => {
+                const dias = [];
+                if (c.lunes === 1) dias.push('L');
+                if (c.martes === 1) dias.push('M');
+                if (c.miercoles === 1) dias.push('MM');
+                if (c.jueves === 1) dias.push('J');
+                if (c.viernes === 1) dias.push('V');
+
+                return {
+                    id: c.id,
+                    materia: c.materia,
+                    horaInicio: c.horaInicio,
+                    horaFin: c.horaFin,
+                    dias: dias
+                };
+            });
+
+            return {
+                id: m.idMaestro,
+                nombre: nombreCompleto,
+                foto: fotoBase64,
+                clases: clasesDelMaestro
+            };
+        });
+
+        res.json(payload);
+    } catch (error: any) {
+        console.error("Error en /api/maestros/carga:", error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 9. Agregar materia (Inserción en cadena)
+app.post('/api/maestros/agregar-materia', async (req, res) => {
+    try {
+        const { idMaestro, materia, horaInicio, horaFin, dias, idarea } = req.body;
+        const pool = await getConnection();
+        
+        const lunes = dias.includes('L') ? 1 : 0;
+        const martes = dias.includes('M') ? 1 : 0;
+        const miercoles = dias.includes('MM') ? 1 : 0;
+        const jueves = dias.includes('J') ? 1 : 0;
+        const viernes = dias.includes('V') ? 1 : 0;
+
+        const horaInicioStr = `1900-01-01 ${horaInicio}:00.000`;
+        const horaFinStr = `1900-01-01 ${horaFin}:00.000`;
+
+        // PASO 1: Insertar Asignatura y obtener su ID generado
+        const resultAsig = await pool.request()
+            .input('idMaestro', sql.Int, idMaestro)
+            .input('materia', sql.VarChar, materia)
+            .query(`
+                INSERT INTO Asignaturas (idMaestro, Materia, activo, idgrupo)
+                OUTPUT INSERTED.idasignatura
+                VALUES (@idMaestro, @materia, 1, 1);
+            `);
+        const idAsignatura = resultAsig.recordset[0].idasignatura;
+
+        // PASO 2: Insertar Periodo y obtener su ID generado
+        const resultPer = await pool.request()
+            .input('horaInicio', sql.VarChar, horaInicioStr)
+            .input('horaFin', sql.VarChar, horaFinStr)
+            .input('lunes', sql.TinyInt, lunes)
+            .input('martes', sql.TinyInt, martes)
+            .input('miercoles', sql.TinyInt, miercoles)
+            .input('jueves', sql.TinyInt, jueves)
+            .input('viernes', sql.TinyInt, viernes)
+            .query(`
+                INSERT INTO Periodos (hora_inicio, hora_fin, lunes, martes, miercoles, jueves, viernes, activo)
+                OUTPUT INSERTED.idperiodo
+                VALUES (@horaInicio, @horaFin, @lunes, @martes, @miercoles, @jueves, @viernes, 1);
+            `);
+        const idPeriodo = resultPer.recordset[0].idperiodo;
+
+        // PASO 3: Unirlos en la tabla Horarios
+        await pool.request()
+            .input('idasignatura', sql.Int, idAsignatura)
+            .input('idperiodo', sql.Int, idPeriodo)
+            .input('idarea', sql.Int, parseInt(idarea) || 1)
+            .query(`
+                INSERT INTO Horarios (idasignatura, idperiodo, idArea, activo)
+                VALUES (@idasignatura, @idperiodo, @idarea, 1);
+            `);
+
+        res.json({ mensaje: "Materia guardada correctamente" });
+    } catch(error: any) {
+         console.error(error);
+         res.status(500).send(error.message);
+    }
+});
+
+// 10. Eliminar materia
+app.delete('/api/maestros/eliminar-materia/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const pool = await getConnection();
+        
+        // MUY IMPORTANTE: Se borra primero de Horarios (la tabla hija) y luego de Asignaturas (la padre)
+        await pool.request()
+            .input('id', sql.Int, id)
+            .query(`
+                DELETE FROM Horarios WHERE idasignatura = @id;
+                DELETE FROM Asignaturas WHERE idasignatura = @id;
+            `);
+            
+        res.json({ mensaje: "Materia eliminada" });
+    } catch(error:any){
+        res.status(500).send(error.message);
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Backend corriendo en http://localhost:${PORT}`);
