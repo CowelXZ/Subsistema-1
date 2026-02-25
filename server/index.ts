@@ -153,33 +153,32 @@ app.get('/api/usuarios/:matricula', async (req, res) => {
     }
 });
 
-// 6. Registrar Nuevo Maestro y sus Horarios (INSERT)
+// 6. Registrar Nuevo Maestro y sus Horarios (VERSIÓN SIMPLIFICADA SIN CARRERA/SALON)
 app.post('/api/maestros/crear', async (req, res) => {
     try {
         const {
             numeroEmpleado, nombres, apellidoPaterno, apellidoMaterno,
             gradoAcademico, correo, sexo, observaciones,
             fotoBase64,
-            horario // Arreglo con las materias asignadas
+            horario 
         } = req.body;
 
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");
 
-        // Convertir Base64 a Binario
+        // --- PASO 1: Procesar la Foto ---
         let fotoBuffer = null;
         if (fotoBase64) {
             const base64Data = fotoBase64.split(';base64,').pop();
             fotoBuffer = Buffer.from(base64Data, 'base64');
         }
 
-// Convertir 'M' o 'F' a texto completo para que se vea bien en la tabla
         let valorSexo = 'No Binario';
         if (sexo === 'M') valorSexo = 'Masculino';
         if (sexo === 'F') valorSexo = 'Femenino';
 
-        // PASO 1: Guardar al Maestro en la NUEVA tabla 'Maestros'
-        await pool.request()
+        // --- PASO 2: Guardar Maestro ---
+        const resultMaestro = await pool.request()
             .input('matricula', sql.VarChar, numeroEmpleado)
             .input('nombre', sql.VarChar, nombres)
             .input('apellidoPaterno', sql.VarChar, apellidoPaterno)
@@ -190,45 +189,64 @@ app.post('/api/maestros/crear', async (req, res) => {
             .input('foto', sql.VarBinary, fotoBuffer)
             .execute('RegistrarMaestro');
 
-        // PASO 2: Guardar las materias en el Horario
-        const nombreCompletoMaestro = `${nombres} ${apellidoPaterno} ${apellidoMaterno || ''}`.trim().toUpperCase();
+        const idMaestroGenerado = resultMaestro.recordset[0].idMaestro;
 
+        // --- PASO 3: Guardar el Horario ---
         if (horario && horario.length > 0) {
             for (const clase of horario) {
                 const lunes = clase.dias.includes('L') ? 1 : 0;
                 const martes = clase.dias.includes('M') ? 1 : 0;
-                const miercoles = clase.dias.includes('X') ? 1 : 0;
+                const miercoles = clase.dias.includes('MM') ? 1 : 0;
                 const jueves = clase.dias.includes('J') ? 1 : 0;
                 const viernes = clase.dias.includes('V') ? 1 : 0;
 
-                // SOLUCIÓN ZONA HORARIA: Forzamos el formato estricto de SQL Server (Año 1900)
-                // y lo enviamos como cadena de texto (VarChar) para evitar que Node.js lo altere.
                 const horaInicioStr = `1900-01-01 ${clase.horaInicio}:00.000`;
                 const horaFinStr = `1900-01-01 ${clase.horaFin}:00.000`;
 
-                await pool.request()
-                    .input('maestro', sql.VarChar, nombreCompletoMaestro)
+                // A) Insertar Asignatura (SOLO COLUMNAS QUE EXISTEN)
+                // Quitamos: carrera, salon, semestre. Dejamos idgrupo fijo en 1 o null según tu tabla.
+                const resultAsig = await pool.request()
+                    .input('idMaestro', sql.Int, idMaestroGenerado)
                     .input('materia', sql.VarChar, clase.materia)
-                    .input('hora_inicio', sql.VarChar, horaInicioStr) // <--- Cambio clave
-                    .input('hora_fin', sql.VarChar, horaFinStr)       // <--- Cambio clave
-                    .input('grupo', sql.Char, clase.grupo) 
-                    .input('semestre', sql.Int, parseInt(clase.semestre)) 
+                    .query(`
+                        INSERT INTO Asignaturas (idMaestro, Maestro, Materia, activo, idgrupo)
+                        OUTPUT INSERTED.idasignatura
+                        VALUES (@idMaestro, 'POR ACTUALIZAR', @materia, 1, 1);
+                    `);
+                const idAsignatura = resultAsig.recordset[0].idasignatura;
+
+                // B) Insertar Periodo
+                const resultPer = await pool.request()
+                    .input('horaInicio', sql.VarChar, horaInicioStr)
+                    .input('horaFin', sql.VarChar, horaFinStr)
                     .input('lunes', sql.TinyInt, lunes)
                     .input('martes', sql.TinyInt, martes)
                     .input('miercoles', sql.TinyInt, miercoles)
                     .input('jueves', sql.TinyInt, jueves)
                     .input('viernes', sql.TinyInt, viernes)
-                    .input('idarea', sql.Int, parseInt(clase.idarea) || 1) 
-                    .input('salon', sql.VarChar, clase.salon) 
-                    .input('carrera', sql.VarChar, clase.carrera) 
-                    .execute('RegistrarHorarioCSV');
+                    .query(`
+                        INSERT INTO Periodos (hora_inicio, hora_fin, lunes, martes, miercoles, jueves, viernes, activo)
+                        OUTPUT INSERTED.idperiodo
+                        VALUES (@horaInicio, @horaFin, @lunes, @martes, @miercoles, @jueves, @viernes, 1);
+                    `);
+                const idPeriodo = resultPer.recordset[0].idperiodo;
+
+                // C) Crear relación en Horarios
+                await pool.request()
+                    .input('idasignatura', sql.Int, idAsignatura)
+                    .input('idperiodo', sql.Int, idPeriodo)
+                    .input('idarea', sql.Int, parseInt(clase.idarea) || 1)
+                    .query(`
+                        INSERT INTO Horarios (idasignatura, idperiodo, idArea, activo)
+                        VALUES (@idasignatura, @idperiodo, @idarea, 1);
+                    `);
             }
         }
 
-        res.json({ mensaje: 'Maestro y horario registrados con éxito' });
+        res.json({ mensaje: 'Maestro y horario registrados correctamente.' });
 
     } catch (error: any) {
-        console.error(error);
+        console.error("Error al registrar maestro completo:", error);
         res.status(500).send(error.message);
     }
 });
@@ -257,7 +275,7 @@ app.get('/api/materias', async (req, res) => {
 // ENDPOINTS PARA ASIGNACIÓN DE CARGA (Usando Horarios y Periodos)
 // =====================================================================
 
-// 8. Obtener Carga Académica (El JOIN de las 3 tablas)
+// 8. Obtener Carga Académica (El JOIN de las 3 tablas + Grupos)
 app.get('/api/maestros/carga', async (req, res) => {
     try {
         const pool = await getConnection();
@@ -267,7 +285,7 @@ app.get('/api/maestros/carga', async (req, res) => {
         const maestrosResult = await pool.request().query('SELECT idMaestro, Nombre, ApellidoPaterno, ApellidoMaterno, Foto FROM Maestros WHERE Activo = 1');
         const maestros = maestrosResult.recordset;
 
-        // 2. Traer las clases uniendo Asignaturas + Horarios + Periodos
+        // 2. Traer las clases uniendo Asignaturas + Horarios + Periodos + Grupos (NUEVO)
         const clasesResult = await pool.request().query(`
             SELECT 
                 A.idasignatura as id, 
@@ -275,15 +293,20 @@ app.get('/api/maestros/carga', async (req, res) => {
                 A.Materia as materia, 
                 CONVERT(varchar(5), P.hora_inicio, 108) as horaInicio, 
                 CONVERT(varchar(5), P.hora_fin, 108) as horaFin,
-                P.lunes, P.martes, P.miercoles, P.jueves, P.viernes 
+                P.lunes, P.martes, P.miercoles, P.jueves, P.viernes,
+                G.Carrera as carrera,
+                G.Salon as salon,
+                G.Semestre as semestre,
+                G.Grupo as grupo
             FROM Asignaturas A
             INNER JOIN Horarios H ON A.idasignatura = H.idasignatura
             INNER JOIN Periodos P ON H.idperiodo = P.idperiodo
+            LEFT JOIN Grupos G ON A.idgrupo = G.idgrupo
             WHERE A.idMaestro IS NOT NULL
         `);
         const clasesRaw = clasesResult.recordset;
 
-        // 3. Formatear para React
+        // 3. Formatear para React (Añadimos los nuevos campos)
         const payload = maestros.map(m => {
             let fotoBase64 = "https://i.pravatar.cc/150?u=" + m.idMaestro;
             if (m.Foto) fotoBase64 = `data:image/jpeg;base64,${Buffer.from(m.Foto).toString('base64')}`;
@@ -303,7 +326,12 @@ app.get('/api/maestros/carga', async (req, res) => {
                     materia: c.materia,
                     horaInicio: c.horaInicio,
                     horaFin: c.horaFin,
-                    dias: dias
+                    dias: dias,
+                    // NUEVOS DATOS:
+                    carrera: c.carrera || 'N/A',
+                    salon: c.salon || 'N/A',
+                    semestre: c.semestre || '-',
+                    grupo: c.grupo || '-'
                 };
             });
 
@@ -322,10 +350,11 @@ app.get('/api/maestros/carga', async (req, res) => {
     }
 });
 
-// 9. Agregar materia (Inserción en cadena)
+// 9. Agregar materia (Inserción en cadena CORREGIDA)
 app.post('/api/maestros/agregar-materia', async (req, res) => {
     try {
-        const { idMaestro, materia, horaInicio, horaFin, dias, idarea } = req.body;
+        // AHORA RECIBIMOS TODOS LOS DATOS (semestre, grupo, carrera, salon)
+        const { idMaestro, materia, horaInicio, horaFin, dias, idarea, semestre, grupo, carrera, salon } = req.body;
         const pool = await getConnection();
         
         const lunes = dias.includes('L') ? 1 : 0;
@@ -337,18 +366,41 @@ app.post('/api/maestros/agregar-materia', async (req, res) => {
         const horaInicioStr = `1900-01-01 ${horaInicio}:00.000`;
         const horaFinStr = `1900-01-01 ${horaFin}:00.000`;
 
-        // PASO 1: Insertar Asignatura y obtener su ID generado
+        // PASO 1: Lógica inteligente para buscar/crear el Grupo y luego insertar Asignatura
         const resultAsig = await pool.request()
             .input('idMaestro', sql.Int, idMaestro)
             .input('materia', sql.VarChar, materia)
+            .input('semestre', sql.Int, parseInt(semestre))
+            .input('grupo', sql.Char, grupo)
+            .input('carrera', sql.VarChar, carrera)
+            .input('salon', sql.VarChar, salon)
             .query(`
+                DECLARE @idgrupo INT;
+
+                -- Buscamos el grupo por semestre y letra
+                SELECT @idgrupo = idgrupo FROM Grupos WHERE Grupo = @grupo AND Semestre = @semestre;
+
+                -- Si no existe, lo creamos
+                IF @idgrupo IS NULL
+                BEGIN
+                    INSERT INTO Grupos (Grupo, Salon, Carrera, Semestre, Activo)
+                    VALUES (@grupo, @salon, @carrera, @semestre, 1);
+                    SET @idgrupo = SCOPE_IDENTITY();
+                END
+                ELSE
+                BEGIN
+                    -- Si existe, actualizamos sus datos por si cambiaron de salón
+                    UPDATE Grupos SET Salon = @salon, Carrera = @carrera, Activo = 1 WHERE idgrupo = @idgrupo;
+                END
+
+                -- Ahora SÍ insertamos la Asignatura con el ID de grupo correcto
                 INSERT INTO Asignaturas (idMaestro, Materia, activo, idgrupo)
                 OUTPUT INSERTED.idasignatura
-                VALUES (@idMaestro, @materia, 1, 1);
+                VALUES (@idMaestro, @materia, 1, @idgrupo);
             `);
         const idAsignatura = resultAsig.recordset[0].idasignatura;
 
-        // PASO 2: Insertar Periodo y obtener su ID generado
+        // PASO 2: Insertar Periodo
         const resultPer = await pool.request()
             .input('horaInicio', sql.VarChar, horaInicioStr)
             .input('horaFin', sql.VarChar, horaFinStr)
@@ -398,6 +450,78 @@ app.delete('/api/maestros/eliminar-materia/:id', async (req, res) => {
         res.json({ mensaje: "Materia eliminada" });
     } catch(error:any){
         res.status(500).send(error.message);
+    }
+});
+
+// 11. Editar materia (UPDATE)
+app.put('/api/maestros/editar-materia/:id', async (req, res) => {
+    try {
+        const idAsignatura = req.params.id;
+        // Recibimos los nuevos datos editados desde el frontend
+        const { materia, horaInicio, horaFin, dias, semestre, grupo, carrera, salon } = req.body;
+        const pool = await getConnection();
+        
+        const lunes = dias.includes('L') ? 1 : 0;
+        const martes = dias.includes('M') ? 1 : 0;
+        const miercoles = dias.includes('MM') ? 1 : 0;
+        const jueves = dias.includes('J') ? 1 : 0;
+        const viernes = dias.includes('V') ? 1 : 0;
+
+        const horaInicioStr = `1900-01-01 ${horaInicio}:00.000`;
+        const horaFinStr = `1900-01-01 ${horaFin}:00.000`;
+
+        await pool.request()
+            .input('idAsignatura', sql.Int, idAsignatura)
+            .input('materia', sql.VarChar, materia)
+            .input('semestre', sql.Int, parseInt(semestre))
+            .input('grupo', sql.Char, grupo)
+            .input('carrera', sql.VarChar, carrera)
+            .input('salon', sql.VarChar, salon)
+            .input('horaInicio', sql.VarChar, horaInicioStr)
+            .input('horaFin', sql.VarChar, horaFinStr)
+            .input('lunes', sql.TinyInt, lunes)
+            .input('martes', sql.TinyInt, martes)
+            .input('miercoles', sql.TinyInt, miercoles)
+            .input('jueves', sql.TinyInt, jueves)
+            .input('viernes', sql.TinyInt, viernes)
+            .query(`
+                -- 1. Lógica inteligente para el Grupo (Misma que al insertar)
+                DECLARE @idgrupo INT;
+                SELECT @idgrupo = idgrupo FROM Grupos WHERE Grupo = @grupo AND Semestre = @semestre AND Carrera = @carrera;
+
+                IF @idgrupo IS NULL
+                BEGIN
+                    INSERT INTO Grupos (Grupo, Salon, Carrera, Semestre, Activo)
+                    VALUES (@grupo, @salon, @carrera, @semestre, 1);
+                    SET @idgrupo = SCOPE_IDENTITY();
+                END
+                ELSE
+                BEGIN
+                    UPDATE Grupos SET Salon = @salon WHERE idgrupo = @idgrupo;
+                END
+
+                -- 2. Actualizamos el nombre de la materia y su nuevo grupo
+                UPDATE Asignaturas 
+                SET Materia = @materia, idgrupo = @idgrupo 
+                WHERE idasignatura = @idAsignatura;
+
+                -- 3. Buscamos el Periodo enlazado y le actualizamos las horas/días
+                DECLARE @idperiodo INT;
+                SELECT @idperiodo = idperiodo FROM Horarios WHERE idasignatura = @idAsignatura;
+
+                IF @idperiodo IS NOT NULL
+                BEGIN
+                    UPDATE Periodos
+                    SET hora_inicio = @horaInicio, hora_fin = @horaFin,
+                        lunes = @lunes, martes = @martes, miercoles = @miercoles, jueves = @jueves, viernes = @viernes
+                    WHERE idperiodo = @idperiodo;
+                END
+            `);
+
+        res.json({ mensaje: "Materia actualizada correctamente" });
+    } catch(error: any) {
+         console.error(error);
+         res.status(500).send(error.message);
     }
 });
 

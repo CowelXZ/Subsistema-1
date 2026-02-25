@@ -239,3 +239,12 @@
 .animate-fade-in { 
     animation: fadeIn 0.3s ease-in-out; 
 }
+/* --- ESTADO DE EDICIÓN --- */
+.editing-row {
+    background-color: #e8f5e9 !important; /* Verde claro estilo éxito */
+    transition: background-color 0.3s ease;
+}
+
+.editing-row td {
+    border-bottom: 1px solid #c8e6c9 !important; /* Borde verde que combina */
+}
