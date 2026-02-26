@@ -102,7 +102,6 @@ app.get('/api/horario/:idUsuario', async (req, res) => {
 
 // 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 // Este endpoint maneja TANTO el escáner (datos crudos) COMO el formulario (datos formateados)
-// 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 app.get('/api/usuarios/:matricula', async (req, res) => {
     try {
         const { matricula } = req.params;
@@ -355,11 +354,11 @@ app.get('/api/maestros/carga', async (req, res) => {
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");
 
-        // 1. Maestros activos
-        const maestrosResult = await pool.request().query('SELECT idMaestro, Nombre, ApellidoPaterno, ApellidoMaterno, Foto FROM Maestros WHERE Activo = 1');
+        // 1. Maestros (AHORA TRAEMOS A TODOS, ACTIVOS E INACTIVOS)
+        const maestrosResult = await pool.request().query('SELECT idMaestro, Nombre, ApellidoPaterno, ApellidoMaterno, Foto, Activo FROM Maestros');
         const maestros = maestrosResult.recordset;
 
-        // 2. Traer las clases uniendo Asignaturas + Horarios + Periodos + Grupos (NUEVO)
+        // 2. Traer las clases uniendo Asignaturas + Horarios + Periodos + Grupos
         const clasesResult = await pool.request().query(`
             SELECT 
                 A.idasignatura as id, 
@@ -401,7 +400,6 @@ app.get('/api/maestros/carga', async (req, res) => {
                     horaInicio: c.horaInicio,
                     horaFin: c.horaFin,
                     dias: dias,
-                    // NUEVOS DATOS:
                     carrera: c.carrera || 'N/A',
                     salon: c.salon || 'N/A',
                     semestre: c.semestre || '-',
@@ -413,6 +411,7 @@ app.get('/api/maestros/carga', async (req, res) => {
                 id: m.idMaestro,
                 nombre: nombreCompleto,
                 foto: fotoBase64,
+                activo: m.Activo === 1, // <--- NUEVO: Le dice a Figma si es verde o gris
                 clases: clasesDelMaestro
             };
         });
@@ -427,7 +426,6 @@ app.get('/api/maestros/carga', async (req, res) => {
 // 9. Agregar materia (Inserción en cadena CORREGIDA)
 app.post('/api/maestros/agregar-materia', async (req, res) => {
     try {
-        // AHORA RECIBIMOS TODOS LOS DATOS (semestre, grupo, carrera, salon)
         const { idMaestro, materia, horaInicio, horaFin, dias, idarea, semestre, grupo, carrera, salon } = req.body;
         const pool = await getConnection();
 
@@ -593,6 +591,32 @@ app.put('/api/maestros/editar-materia/:id', async (req, res) => {
             `);
 
         res.json({ mensaje: "Materia actualizada correctamente" });
+    } catch (error: any) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 12. Cambiar estado ACTIVO/INACTIVO de un Maestro y sus Materias
+app.put('/api/maestros/estado/:idMaestro', async (req, res) => {
+    try {
+        const { idMaestro } = req.params;
+        const { estado } = req.body; // Recibirá 1 (Activo) o 0 (Inactivo)
+        const pool = await getConnection();
+
+        // Actualizamos ambas tablas al mismo tiempo para mantener sincronía
+        await pool.request()
+            .input('id', sql.Int, idMaestro)
+            .input('estado', sql.TinyInt, estado)
+            .query(`
+                -- 1. Actualiza la tarjeta del maestro
+                UPDATE Maestros SET Activo = @estado WHERE idMaestro = @id;
+                
+                -- 2. Actualiza masivamente sus materias en la tabla Asignaturas
+                UPDATE Asignaturas SET activo = @estado WHERE idMaestro = @id;
+            `);
+
+        res.json({ mensaje: "Estado actualizado correctamente en Maestros y Asignaturas" });
     } catch (error: any) {
         console.error(error);
         res.status(500).send(error.message);
