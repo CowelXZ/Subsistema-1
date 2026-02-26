@@ -73,9 +73,9 @@ export const useRegistroUsuario = () => {
                     nombres: data.nombres,
                     apellidoPaterno: data.apellidoPaterno,
                     apellidoMaterno: data.apellidoMaterno || '',
-                    grado: '',
-                    grupo: '',
-                    carrera: data.carrera,
+                    grado: data.grado || '',     // <--- Cambiamos '' por data.grado
+                    grupo: data.grupo || '',     // <--- Cambiamos '' por data.grupo
+                    carrera: data.carrera || '',
                     sexo: data.sexo,
                     observaciones: data.observaciones || ''
                 });

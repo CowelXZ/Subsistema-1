@@ -4,7 +4,7 @@ import { Header } from '../common/Header';
 import { Modal } from '../common/Modal';
 import { CameraWidget } from '../common/CameraWidget'; // <--- El Widget Nuevo
 import { useRegistroUsuario } from './useRegistroUsuario'; // <--- El Hook Nuevo
-import '../common/CameraWidget'; // Para el tipo de webcamRef
+
 
 interface Props {
     onBack: () => void;

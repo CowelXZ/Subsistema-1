@@ -11,7 +11,7 @@ const dbSettings = {
     options: {
         encrypt: false,
         trustServerCertificate: true,
-        instanceName: 'SQLEXPRESS',// <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
+        instanceName: 'MSSQLSERVER02',// <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
         enableArithAbort: true
     },
 };

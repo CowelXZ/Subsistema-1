@@ -39,11 +39,12 @@ app.get('/api/carreras', async (req, res) => {
 
 
 // 3. Buscar Usuario por Código (Usando SP)
+/*
 app.get('/api/usuarios/:codigo', async (req, res) => {
     try {
         const { codigo } = req.params;
         const pool = await getConnection();
-        
+
         if (!pool) throw new Error("Sin conexión a BD");
 
         // EJECUTAMOS EL STORED PROCEDURE 'BuscarUsuario'
@@ -69,7 +70,7 @@ app.get('/api/usuarios/:codigo', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
-
+*/
 // 4. NUEVO: Buscar Horario por ID y Fecha Actual
 app.get('/api/horario/:idUsuario', async (req, res) => {
     try {
@@ -91,7 +92,7 @@ app.get('/api/horario/:idUsuario', async (req, res) => {
             res.json(result.recordset[0]);
         } else {
             // No tiene clase asignada a esta hora
-            res.json(null); 
+            res.json(null);
         }
     } catch (error: any) {
         console.error("Error buscando horario:", error);
@@ -101,6 +102,7 @@ app.get('/api/horario/:idUsuario', async (req, res) => {
 
 // 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 // Este endpoint maneja TANTO el escáner (datos crudos) COMO el formulario (datos formateados)
+// 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 app.get('/api/usuarios/:matricula', async (req, res) => {
     try {
         const { matricula } = req.params;
@@ -112,35 +114,58 @@ app.get('/api/usuarios/:matricula', async (req, res) => {
 
         // Validamos que exista resultado
         if (result && result.recordset && result.recordset.length > 0) {
-            // Obtenemos el objeto crudo de la BD (Con mayúsculas: Nombre, Usuario...)
             const usuarioRaw = result.recordset[0];
 
-            // 1. Procesamos la foto para que sirva en ambos casos
+            // --- BÚSQUEDA ADICIONAL (Para traer Grado, Grupo y Carrera Real) ---
+            let gradoReal = '';
+            let grupoReal = usuarioRaw.Ubicacion || '';
+            let carreraReal = usuarioRaw.Puesto || '';
+
+            // Si tiene un idUsuario, buscamos en sus tablas correspondientes
+            if (usuarioRaw.idUsuario) {
+                const queryAlumno = await pool?.request()
+                    .input('idUsuario', sql.Int, usuarioRaw.idUsuario)
+                    .query(`
+                        SELECT A.Semestre, G.Grupo, C.NombreCarrera 
+                        FROM Alumnos A
+                        LEFT JOIN Grupos G ON A.idgrupo = G.idgrupo
+                        LEFT JOIN Carreras C ON G.Carrera = C.Abreviatura
+                        WHERE A.idusuario = @idUsuario AND A.activo = 1
+                    `);
+
+                // Si encontramos datos en la tabla Alumnos, sobrescribimos
+                if (queryAlumno && queryAlumno.recordset.length > 0) {
+                    const infoAlumno = queryAlumno.recordset[0];
+                    gradoReal = infoAlumno.Semestre?.toString() || '';
+                    if (infoAlumno.Grupo) grupoReal = infoAlumno.Grupo;
+                    if (infoAlumno.NombreCarrera) carreraReal = infoAlumno.NombreCarrera;
+                }
+            }
+
+            // 1. Procesamos la foto
             let fotoBase64 = null;
             if (usuarioRaw.Foto) {
                 fotoBase64 = `data:image/jpeg;base64,${Buffer.from(usuarioRaw.Foto).toString('base64')}`;
             }
-
-            // Actualizamos el objeto crudo con la foto en Base64 (Para el Escáner)
             usuarioRaw.Foto = fotoBase64;
 
-            // 2. Preparamos el objeto mapeado (Para el Formulario)
+            // 2. Preparamos el objeto mapeado (¡Ahora con Grado y Grupo!)
             const usuarioFormateado = {
                 matricula: usuarioRaw.Usuario,
                 nombres: usuarioRaw.Nombre,
                 apellidoPaterno: usuarioRaw.ApellidoPaterno,
                 apellidoMaterno: usuarioRaw.ApellidoMaterno,
-                carrera: usuarioRaw.Puesto,
+                carrera: carreraReal,
+                grado: gradoReal,   // <--- Añadido
+                grupo: grupoReal,   // <--- Añadido
                 sexo: usuarioRaw.Sexo === 1 ? 'M' : (usuarioRaw.Sexo === 2 ? 'F' : 'NB'),
                 observaciones: usuarioRaw.Observaciones,
                 foto: fotoBase64
             };
 
-            // 3. ¡FUSIÓN! Devolvemos TODO junto. 
-            // React tomará lo que necesite y el Escáner tomará lo suyo.
             res.json({
-                ...usuarioRaw,       // Aquí van: Nombre, Puesto, Usuario... (Para el Escáner)
-                ...usuarioFormateado // Aquí van: nombres, carrera, matricula... (Para el Formulario)
+                ...usuarioRaw,
+                ...usuarioFormateado
             });
 
         } else {
@@ -152,7 +177,6 @@ app.get('/api/usuarios/:matricula', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
-
 // 6. Registrar Nuevo Maestro y sus Horarios (INSERT)
 app.post('/api/maestros/crear', async (req, res) => {
     try {
@@ -173,7 +197,7 @@ app.post('/api/maestros/crear', async (req, res) => {
             fotoBuffer = Buffer.from(base64Data, 'base64');
         }
 
-// Convertir 'M' o 'F' a texto completo para que se vea bien en la tabla
+        // Convertir 'M' o 'F' a texto completo para que se vea bien en la tabla
         let valorSexo = 'No Binario';
         if (sexo === 'M') valorSexo = 'Masculino';
         if (sexo === 'F') valorSexo = 'Femenino';
@@ -211,16 +235,16 @@ app.post('/api/maestros/crear', async (req, res) => {
                     .input('materia', sql.VarChar, clase.materia)
                     .input('hora_inicio', sql.VarChar, horaInicioStr) // <--- Cambio clave
                     .input('hora_fin', sql.VarChar, horaFinStr)       // <--- Cambio clave
-                    .input('grupo', sql.Char, clase.grupo) 
-                    .input('semestre', sql.Int, parseInt(clase.semestre)) 
+                    .input('grupo', sql.Char, clase.grupo)
+                    .input('semestre', sql.Int, parseInt(clase.semestre))
                     .input('lunes', sql.TinyInt, lunes)
                     .input('martes', sql.TinyInt, martes)
                     .input('miercoles', sql.TinyInt, miercoles)
                     .input('jueves', sql.TinyInt, jueves)
                     .input('viernes', sql.TinyInt, viernes)
-                    .input('idarea', sql.Int, parseInt(clase.idarea) || 1) 
-                    .input('salon', sql.VarChar, clase.salon) 
-                    .input('carrera', sql.VarChar, clase.carrera) 
+                    .input('idarea', sql.Int, parseInt(clase.idarea) || 1)
+                    .input('salon', sql.VarChar, clase.salon)
+                    .input('carrera', sql.VarChar, clase.carrera)
                     .execute('RegistrarHorarioCSV');
             }
         }
@@ -232,6 +256,55 @@ app.post('/api/maestros/crear', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
+// Registrar Nuevo Usuario (Alumno/Administrativo)
+app.post('/api/usuarios/crear', async (req, res) => {
+    try {
+        const {
+            matricula, nombres, apellidoPaterno, apellidoMaterno,
+            grado, grupo, carrera, sexo, observaciones, fotoBase64
+        } = req.body;
+
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión a BD");
+
+        // 1. Convertir la foto de Base64 a Buffer (Binario para SQL)
+        let fotoBuffer = null;
+        if (fotoBase64) {
+            const base64Data = fotoBase64.split(';base64,').pop();
+            fotoBuffer = Buffer.from(base64Data, 'base64');
+        }
+
+        // 2. Mapear el Sexo a tinyint (Como lo definiste en tu tabla Usuarios)
+        let sexoId = 1; // Default: Masculino
+        if (sexo === 'F') sexoId = 2; // Femenino
+        if (sexo === 'NB') sexoId = 3; // No Binario
+
+        // 3. Ejecutar el Stored Procedure
+        await pool.request()
+            .input('autoridad', sql.VarChar, 'A') // 'A' de Alumno (Cámbialo si manejas otros roles en esta vista)
+            .input('usuario', sql.VarChar, matricula)
+            .input('puesto', sql.VarChar, carrera) // Usamos 'Puesto' para guardar la carrera según tu lógica
+            .input('ubicacion', sql.VarChar, grupo) // Guardamos el grupo en 'Ubicacion'
+            .input('nombre', sql.VarChar, nombres)
+            .input('apellidopaterno', sql.VarChar, apellidoPaterno)
+            .input('apellidomaterno', sql.VarChar, apellidoMaterno || '')
+            .input('foto', sql.VarBinary, fotoBuffer)
+            .input('sexo', sql.TinyInt, sexoId)
+            .input('activo', sql.TinyInt, 1) // 1 = Activo
+            .input('status', sql.VarChar, 'ACTIVO')
+            .input('fechacreacion', sql.DateTime, new Date()) // El SP lo pide en la firma, aunque lo reescriba internamente
+            .input('observaciones', sql.VarChar, observaciones || '')
+            .execute('RegistrarUsuarios');
+
+        res.status(200).json({ mensaje: 'Usuario registrado exitosamente' });
+
+    } catch (error: any) {
+        console.error("Error al guardar usuario:", error);
+        res.status(500).send(error.message);
+    }
+});
+
 
 // 7. Obtener lista de Materias Activas sin repetir
 app.get('/api/materias', async (req, res) => {
@@ -246,7 +319,7 @@ app.get('/api/materias', async (req, res) => {
             WHERE activo = 1 
             ORDER BY Materia ASC
         `);
-        
+
         res.json(result.recordset);
     } catch (error: any) {
         res.status(500).send(error.message);
@@ -327,7 +400,7 @@ app.post('/api/maestros/agregar-materia', async (req, res) => {
     try {
         const { idMaestro, materia, horaInicio, horaFin, dias, idarea } = req.body;
         const pool = await getConnection();
-        
+
         const lunes = dias.includes('L') ? 1 : 0;
         const martes = dias.includes('M') ? 1 : 0;
         const miercoles = dias.includes('MM') ? 1 : 0;
@@ -375,9 +448,9 @@ app.post('/api/maestros/agregar-materia', async (req, res) => {
             `);
 
         res.json({ mensaje: "Materia guardada correctamente" });
-    } catch(error: any) {
-         console.error(error);
-         res.status(500).send(error.message);
+    } catch (error: any) {
+        console.error(error);
+        res.status(500).send(error.message);
     }
 });
 
@@ -386,7 +459,7 @@ app.delete('/api/maestros/eliminar-materia/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const pool = await getConnection();
-        
+
         // MUY IMPORTANTE: Se borra primero de Horarios (la tabla hija) y luego de Asignaturas (la padre)
         await pool.request()
             .input('id', sql.Int, id)
@@ -394,9 +467,9 @@ app.delete('/api/maestros/eliminar-materia/:id', async (req, res) => {
                 DELETE FROM Horarios WHERE idasignatura = @id;
                 DELETE FROM Asignaturas WHERE idasignatura = @id;
             `);
-            
+
         res.json({ mensaje: "Materia eliminada" });
-    } catch(error:any){
+    } catch (error: any) {
         res.status(500).send(error.message);
     }
 });
