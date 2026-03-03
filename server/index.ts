@@ -23,54 +23,27 @@ app.get('/api/test', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
-
-// 2. Obtener lista de Carreras
 app.get('/api/carreras', async (req, res) => {
     try {
         const pool = await getConnection();
-        if (!pool) throw new Error("No hay conexión");
-
-        const result = await pool.request().query('SELECT * FROM Carreras WHERE Activo = 1');
-        res.json(result.recordset);
-    } catch (error: any) { // CORRECCIÓN 2: Agregamos ': any' aquí
-        res.status(500).send(error.message);
-    }
-});
-
-
-// 3. Buscar Usuario por Código (Usando SP)
-/*
-app.get('/api/usuarios/:codigo', async (req, res) => {
-    try {
-        const { codigo } = req.params;
-        const pool = await getConnection();
-
         if (!pool) throw new Error("Sin conexión a BD");
 
-        // EJECUTAMOS EL STORED PROCEDURE 'BuscarUsuario'
-        const result = await pool.request()
-            .input('usuario', sql.VarChar, codigo) // El nombre del parámetro debe coincidir con el del SP (@usuario)
-            .execute('BuscarUsuario');
+        const result = await pool.request().query(`
+            SELECT 
+                ROW_NUMBER() OVER (ORDER BY Carrera) AS idCarrera,
+                Carrera AS NombreCarrera
+            FROM (
+                SELECT DISTINCT Carrera
+                FROM Grupos
+                WHERE Activo = 1 AND Carrera IS NOT NULL
+            ) AS CarrerasUnicas
+        `);
 
-        if (result.recordset.length > 0) {
-            const usuario = result.recordset[0];
-
-            // --- CONVERSIÓN DE FOTO (Igual que antes) ---
-            if (usuario.Foto) {
-                const base64Image = Buffer.from(usuario.Foto).toString('base64');
-                usuario.Foto = `data:image/jpeg;base64,${base64Image}`;
-            }
-
-            res.json(usuario);
-        } else {
-            res.status(404).json({ message: 'Usuario no encontrado' });
-        }
+        res.json(result.recordset);
     } catch (error: any) {
-        console.error("Error en SP BuscarUsuario:", error);
         res.status(500).send(error.message);
     }
 });
-*/
 // 4. NUEVO: Buscar Horario por ID y Fecha Actual
 app.get('/api/horario/:idUsuario', async (req, res) => {
     try {
@@ -100,80 +73,176 @@ app.get('/api/horario/:idUsuario', async (req, res) => {
     }
 });
 
-// 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 // Este endpoint maneja TANTO el escáner (datos crudos) COMO el formulario (datos formateados)
+// 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 // 5. Buscar Usuario (EL ÚNICO Y PODEROSO HÍBRIDO)
 app.get('/api/usuarios/:matricula', async (req, res) => {
     try {
         const { matricula } = req.params;
         const pool = await getConnection();
 
+        // 1. Buscamos los datos base del usuario
         const result = await pool?.request()
             .input('usuario', sql.VarChar, matricula)
             .execute('BuscarUsuario');
 
-        // Validamos que exista resultado
         if (result && result.recordset && result.recordset.length > 0) {
             const usuarioRaw = result.recordset[0];
 
-            // --- BÚSQUEDA ADICIONAL (Para traer Grado, Grupo y Carrera Real) ---
-            let gradoReal = '';
-            let grupoReal = usuarioRaw.Ubicacion || '';
-            let carreraReal = usuarioRaw.Puesto || '';
-
-            // Si tiene un idUsuario, buscamos en sus tablas correspondientes
-            if (usuarioRaw.idUsuario) {
-                const queryAlumno = await pool?.request()
-                    .input('idUsuario', sql.Int, usuarioRaw.idUsuario)
-                    .query(`
-                        SELECT A.Semestre, G.Grupo, C.NombreCarrera 
-                        FROM Alumnos A
-                        LEFT JOIN Grupos G ON A.idgrupo = G.idgrupo
-                        LEFT JOIN Carreras C ON G.Carrera = C.Abreviatura
-                        WHERE A.idusuario = @idUsuario AND A.activo = 1
-                    `);
-
-                // Si encontramos datos en la tabla Alumnos, sobrescribimos
-                if (queryAlumno && queryAlumno.recordset.length > 0) {
-                    const infoAlumno = queryAlumno.recordset[0];
-                    gradoReal = infoAlumno.Semestre?.toString() || '';
-                    if (infoAlumno.Grupo) grupoReal = infoAlumno.Grupo;
-                    if (infoAlumno.NombreCarrera) carreraReal = infoAlumno.NombreCarrera;
-                }
-            }
-
-            // 1. Procesamos la foto
             let fotoBase64 = null;
             if (usuarioRaw.Foto) {
                 fotoBase64 = `data:image/jpeg;base64,${Buffer.from(usuarioRaw.Foto).toString('base64')}`;
             }
-            usuarioRaw.Foto = fotoBase64;
 
-            // 2. Preparamos el objeto mapeado (¡Ahora con Grado y Grupo!)
+            let estadoAcceso = 'permitido';
+            if (usuarioRaw.Status === 'DENEGADO') estadoAcceso = 'denegado';
+
+            // --- NUEVO: BÚSQUEDA DE DATOS ESCOLARES (Grado, Grupo, Carrera) ---
+            let gradoReal = '';
+            let grupoReal = '';
+            let carreraReal = '';
+
+            if (usuarioRaw.idUsuario) {
+                const queryAlumno = await pool?.request()
+                    .input('idUsuario', sql.Int, usuarioRaw.idUsuario)
+                    .query(`
+                        SELECT 
+                            G.Semestre AS GradoAlumno, 
+                            G.Grupo AS GrupoAlumno, 
+                            G.Carrera AS CarreraAlumno
+                        FROM Alumnos A
+                        INNER JOIN Grupos G ON A.idgrupo = G.idgrupo
+                        WHERE A.idusuario = @idUsuario AND A.activo = 1
+                    `);
+
+                // Si encontramos su registro escolar, sobrescribimos las variables
+                if (queryAlumno && queryAlumno.recordset.length > 0) {
+                    const infoAlumno = queryAlumno.recordset[0];
+                    if (infoAlumno.GradoAlumno) gradoReal = infoAlumno.GradoAlumno.toString();
+                    if (infoAlumno.GrupoAlumno) grupoReal = infoAlumno.GrupoAlumno.trim();
+                    if (infoAlumno.CarreraAlumno) carreraReal = infoAlumno.CarreraAlumno.trim();
+                }
+            }
+
+            // 2. Construimos el objeto final mezclando datos personales y escolares
             const usuarioFormateado = {
                 matricula: usuarioRaw.Usuario,
                 nombres: usuarioRaw.Nombre,
                 apellidoPaterno: usuarioRaw.ApellidoPaterno,
                 apellidoMaterno: usuarioRaw.ApellidoMaterno,
-                carrera: carreraReal,
-                grado: gradoReal,   // <--- Añadido
-                grupo: grupoReal,   // <--- Añadido
+                carrera: carreraReal || usuarioRaw.Puesto || '', // Da prioridad a la tabla Grupos
+                grupo: grupoReal || '',                          // Da prioridad a la tabla Grupos
+                grado: gradoReal,                                // Traído directamente de Grupos.Semestre
                 sexo: usuarioRaw.Sexo === 1 ? 'M' : (usuarioRaw.Sexo === 2 ? 'F' : 'NB'),
                 observaciones: usuarioRaw.Observaciones,
-                foto: fotoBase64
+                foto: fotoBase64,
+                statusAcceso: estadoAcceso
             };
 
-            res.json({
-                ...usuarioRaw,
-                ...usuarioFormateado
-            });
-
+            res.json({ ...usuarioRaw, ...usuarioFormateado });
         } else {
             res.status(404).json({ mensaje: 'Usuario no encontrado' });
         }
+    } catch (error: any) {
+        res.status(500).send(error.message);
+    }
+});
+
+// Registrar Nuevo Usuario (Alumno/Administrativo)
+// Registrar Nuevo Usuario (Alumno) - VERSIÓN NORMALIZADA
+app.post('/api/usuarios/crear', async (req, res) => {
+    try {
+        const {
+            matricula, nombres, apellidoPaterno, apellidoMaterno,
+            grado, grupo, carrera, sexo, observaciones, fotoBase64, statusAcceso
+        } = req.body;
+
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión a BD");
+
+        let fotoBuffer = null;
+        if (fotoBase64) {
+            const base64Data = fotoBase64.split(';base64,').pop();
+            fotoBuffer = Buffer.from(base64Data, 'base64');
+        }
+
+        let sexoId = 1;
+        if (sexo === 'F') sexoId = 2;
+        if (sexo === 'NB') sexoId = 3;
+
+        const statusBD = statusAcceso === 'denegado' ? 'DENEGADO' : 'ACCESO PERMITIDO';
+        const semestreNum = parseInt(grado) || 1;
+
+        // --- PASO 1: Guardar/Actualizar en tabla USUARIOS ---
+        await pool.request()
+            .input('autoridad', sql.VarChar, 'A')
+            .input('usuario', sql.VarChar, matricula)
+            .input('puesto', sql.VarChar, 'ALUMNO')          // <--- DATO CORRECTO
+            .input('ubicacion', sql.VarChar, 'SIN ASIGNAR')  // <--- DATO CORRECTO
+            .input('nombre', sql.VarChar, nombres)
+            .input('apellidopaterno', sql.VarChar, apellidoPaterno)
+            .input('apellidomaterno', sql.VarChar, apellidoMaterno || '')
+            .input('foto', sql.VarBinary, fotoBuffer)
+            .input('sexo', sql.TinyInt, sexoId)
+            .input('activo', sql.TinyInt, 1)
+            .input('status', sql.VarChar, statusBD)
+            .input('fechacreacion', sql.DateTime, new Date())
+            .input('observaciones', sql.VarChar, observaciones || '')
+            .execute('RegistrarUsuarios');
+
+        // --- PASO 2: Obtener el idUsuario de la persona que acabamos de afectar ---
+        const userRes = await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .query('SELECT idUsuario FROM Usuarios WHERE Usuario = @matricula');
+        const idUsuario = userRes.recordset[0].idUsuario;
+
+        // --- PASO 3: Lógica inteligente para Grupos (Buscar o Crear) ---
+        const resultGrupo = await pool.request()
+            .input('grupo', sql.Char, grupo)
+            .input('semestre', sql.Int, semestreNum)
+            .input('carrera', sql.VarChar, carrera)
+            .query(`
+                DECLARE @idgrupo INT;
+                SELECT @idgrupo = idgrupo FROM Grupos WHERE Grupo = @grupo AND Semestre = @semestre AND Carrera = @carrera;
+
+                -- Si el grupo no existe para esa carrera y semestre, lo creamos
+                IF @idgrupo IS NULL
+                BEGIN
+                    INSERT INTO Grupos (Grupo, Salon, Carrera, Semestre, Activo)
+                    VALUES (@grupo, 'POR ASIGNAR', @carrera, @semestre, 1);
+                    SET @idgrupo = SCOPE_IDENTITY();
+                END
+
+                SELECT @idgrupo AS idgrupo;
+            `);
+        const idGrupo = resultGrupo.recordset[0].idgrupo;
+
+        // --- PASO 4: Guardar/Actualizar en tabla ALUMNOS ---
+        await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .input('semestre', sql.Int, semestreNum)
+            .input('idusuario', sql.Int, idUsuario)
+            .input('idgrupo', sql.Int, idGrupo)
+            .query(`
+                IF EXISTS (SELECT 1 FROM Alumnos WHERE idusuario = @idusuario)
+                BEGIN
+                    -- Si ya es alumno, solo le actualizamos su grupo y semestre
+                    UPDATE Alumnos
+                    SET idgrupo = @idgrupo, Semestre = @semestre, activo = 1
+                    WHERE idusuario = @idusuario;
+                END
+                ELSE
+                BEGIN
+                    -- Si es un alumno nuevo, lo insertamos
+                    INSERT INTO Alumnos (Alumno, Semestre, idusuario, idgrupo, activo)
+                    VALUES (@matricula, @semestre, @idusuario, @idgrupo, 1);
+                END
+            `);
+
+        res.status(200).json({ mensaje: 'Alumno guardado y vinculado exitosamente' });
 
     } catch (error: any) {
-        console.error(error);
+        console.error("Error al guardar alumno completo:", error);
         res.status(500).send(error.message);
     }
 });
@@ -311,7 +380,7 @@ app.post('/api/usuarios/crear', async (req, res) => {
             .input('foto', sql.VarBinary, fotoBuffer)
             .input('sexo', sql.TinyInt, sexoId)
             .input('activo', sql.TinyInt, 1) // 1 = Activo
-            .input('status', sql.VarChar, 'ACTIVO')
+            .input('status', sql.VarChar, 'ACCESO PERMITIDO') // Status inicial
             .input('fechacreacion', sql.DateTime, new Date()) // El SP lo pide en la firma, aunque lo reescriba internamente
             .input('observaciones', sql.VarChar, observaciones || '')
             .execute('RegistrarUsuarios');

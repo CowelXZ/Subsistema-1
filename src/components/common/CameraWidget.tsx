@@ -18,9 +18,6 @@ export const CameraWidget: React.FC<Props> = ({
         <section className="card">
             <div className="card-header">
                 <h2>Cámara</h2>
-                <button className="btn-outline">
-                    <span className="material-icons">photo_camera</span> Activar
-                </button>
             </div>
 
             <div className="camera-container">

@@ -67,19 +67,31 @@ export const useRegistroUsuario = () => {
         try {
             const res = await fetch(`http://localhost:3000/api/usuarios/${formData.matricula}`);
             if (res.ok) {
+                // En tu función buscarPorMatricula:
                 const data = await res.json();
                 setFormData({
                     matricula: data.matricula,
                     nombres: data.nombres,
                     apellidoPaterno: data.apellidoPaterno,
                     apellidoMaterno: data.apellidoMaterno || '',
-                    grado: data.grado || '',     // <--- Cambiamos '' por data.grado
-                    grupo: data.grupo || '',     // <--- Cambiamos '' por data.grupo
+                    grado: data.grado || '',
+                    grupo: data.grupo || '',
                     carrera: data.carrera || '',
                     sexo: data.sexo,
                     observaciones: data.observaciones || ''
                 });
                 setImgSrc(data.foto || null);
+                if (data.statusAcceso) {
+                    setAccessStatus(data.statusAcceso); // <--- Actualiza el Toggle visual
+                }
+
+                // ---------------------------------------------------------
+                // En tu función guardarEnBaseDeDatos:
+                const datosParaEnviar = {
+                    ...formData,
+                    fotoBase64: imgSrc,
+                    statusAcceso: accessStatus // <--- Mandamos el estado verde/rojo al backend
+                };
                 showAlert("¡Encontrado!", "Usuario cargado correctamente.", "success");
             } else {
                 showAlert("No encontrado", "La matrícula no existe. Puedes registrarlo como nuevo.", "warning");
@@ -98,7 +110,11 @@ export const useRegistroUsuario = () => {
         }
 
         try {
-            const datosParaEnviar = { ...formData, fotoBase64: imgSrc };
+            const datosParaEnviar = {
+                ...formData,
+                fotoBase64: imgSrc,
+                statusAcceso: accessStatus // <--- Mandamos el estado verde/rojo al backend
+            };
             const respuesta = await fetch('http://localhost:3000/api/usuarios/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
