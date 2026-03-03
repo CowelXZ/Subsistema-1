@@ -11,7 +11,7 @@ const dbSettings = {
     options: {
         encrypt: false,
         trustServerCertificate: true,
-        instanceName: 'MSSQLSERVER02',// <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
+        instanceName: 'RAM',// <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
         enableArithAbort: true
     },
 };
