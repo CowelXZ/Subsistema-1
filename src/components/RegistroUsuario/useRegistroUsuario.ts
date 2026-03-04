@@ -42,9 +42,31 @@ export const useRegistroUsuario = () => {
     }, []);
 
     // --- FUNCIONES AUXILIARES ---
+    // --- MANEJADOR DE CAMBIOS CON FILTROS EN TIEMPO REAL ---
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        let newValue = value;
+
+        // 1. Filtro para Nombres y Apellidos: SOLO LETRAS Y ESPACIOS
+        if (name === 'nombres' || name === 'apellidoPaterno' || name === 'apellidoMaterno') {
+            // La expresión /[^...]/g busca todo lo que NO sea letra, acento o espacio y lo elimina ('')
+            newValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+        }
+
+        // 2. Filtro para Grado (Semestre): SOLO NÚMEROS
+        if (name === 'grado') {
+            // Elimina cualquier cosa que NO sea un dígito del 0 al 9
+            newValue = value.replace(/[^0-9]/g, '');
+        }
+
+        // 3. Filtro para Grupo: SOLO UNA LETRA (y la hace mayúscula automáticamente)
+        if (name === 'grupo') {
+            // Elimina lo que no sea letra, lo pasa a mayúscula y corta si intentas escribir más de 1 caracter
+            newValue = value.replace(/[^a-zA-Z]/g, '').toUpperCase().substring(0, 1);
+        }
+
+        // Guardamos el valor limpio en el estado
+        setFormData(prev => ({ ...prev, [name]: newValue }));
     };
 
     const showAlert = (title: string, msg: string, type: 'success' | 'warning' | 'error') => {
@@ -102,19 +124,71 @@ export const useRegistroUsuario = () => {
         }
     };
 
-    const guardarEnBaseDeDatos = async () => {
-        // Validaciones
-        if (!formData.matricula || !formData.nombres) {
-            showAlert("Faltan datos", "Por favor llena la matrícula y el nombre", "warning");
-            return;
+
+    // --- VALIDACIONES ---
+    const validarDatos = (): boolean => {
+        const { matricula, nombres, apellidoPaterno, grado, grupo, carrera } = formData;
+
+        if (!matricula.trim()) {
+            showAlert("Campo Obligatorio", "La matrícula no puede estar vacía.", "warning");
+            return false;
         }
 
+        // Regex para aceptar solo letras, acentos, ñ y espacios
+        const regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+
+        if (!nombres.trim() || !regexLetras.test(nombres)) {
+            showAlert("Nombre Inválido", "El nombre es obligatorio y solo debe contener letras.", "warning");
+            return false;
+        }
+
+        if (!apellidoPaterno.trim() || !regexLetras.test(apellidoPaterno)) {
+            showAlert("Apellido Inválido", "El apellido paterno es obligatorio y solo debe contener letras.", "warning");
+            return false;
+        }
+
+        const gradoNum = parseInt(grado);
+        if (!grado.trim() || isNaN(gradoNum) || gradoNum < 1 || gradoNum > 10) {
+            showAlert("Grado Inválido", "El grado (semestre) debe ser un número válido (ej. 1 al 10).", "warning");
+            return false;
+        }
+
+        // Regex para aceptar exactamente una letra (A-Z)
+        const regexGrupo = /^[a-zA-Z]$/;
+        if (!grupo.trim() || !regexGrupo.test(grupo)) {
+            showAlert("Grupo Inválido", "El grupo debe ser una sola letra (ej. A, B, K).", "warning");
+            return false;
+        }
+
+        if (!carrera) {
+            showAlert("Carrera Inválida", "Debes seleccionar una carrera de la lista.", "warning");
+            return false;
+        }
+
+        if (!imgSrc) {
+            showAlert("Falta Fotografía", "Es necesario capturar la foto del usuario para el control de acceso.", "warning");
+            return false;
+        }
+
+        return true; // Si sobrevive a todo esto, está perfecto
+    };
+
+    // Función puente: Solo abre el modal si las validaciones pasan
+    const intentarGuardar = () => {
+        if (validarDatos()) {
+            setShowConfirmModal(true);
+        }
+    };
+
+    const guardarEnBaseDeDatos = async () => {
+        // (Ya no necesitamos el IF de validación aquí porque 'intentarGuardar' ya lo hizo)
         try {
             const datosParaEnviar = {
                 ...formData,
                 fotoBase64: imgSrc,
-                statusAcceso: accessStatus // <--- Mandamos el estado verde/rojo al backend
+                statusAcceso: accessStatus
             };
+            // ... (EL RESTO DE TU FETCH SE QUEDA EXACTAMENTE IGUAL) ...
             const respuesta = await fetch('http://localhost:3000/api/usuarios/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -123,11 +197,10 @@ export const useRegistroUsuario = () => {
 
             if (respuesta.ok) {
                 showAlert("¡Éxito!", "Usuario guardado correctamente.", "success");
-                // Limpiar formulario
                 setImgSrc(null);
                 setFormData({
                     matricula: '', nombres: '', apellidoPaterno: '', apellidoMaterno: '',
-                    grado: '', grupo: '', carrera: 'Contador Público', sexo: 'M', observaciones: ''
+                    grado: '', grupo: '', carrera: '', sexo: 'M', observaciones: ''
                 });
             } else {
                 const errorData = await respuesta.text();
@@ -139,16 +212,12 @@ export const useRegistroUsuario = () => {
         }
     };
 
-    // Exponemos todo lo necesario
+    // Asegúrate de exportar intentarGuardar al final
     return {
-        // Datos
         formData, listaCarreras, imgSrc, accessStatus,
-        // Modales
         showConfirmModal, setShowConfirmModal, alertModal, closeAlert,
-        // Referencias
         webcamRef,
-        // Acciones
         handleChange, capturarFoto, limpiarFoto, setAccessStatus,
-        buscarPorMatricula, guardarEnBaseDeDatos
+        buscarPorMatricula, guardarEnBaseDeDatos, intentarGuardar // <--- NUEVO
     };
 };

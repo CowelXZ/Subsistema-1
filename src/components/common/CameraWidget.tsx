@@ -3,7 +3,6 @@ import Webcam from 'react-webcam';
 
 interface Props {
     imgSrc: string | null;
-    // CORRECCIÓN AQUÍ: Agregamos "| null" para que TypeScript no se queje
     webcamRef: React.RefObject<Webcam | null>;
     onCapture: () => void;
     onRetake: () => void;

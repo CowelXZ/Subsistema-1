@@ -114,7 +114,7 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
             </main>
 
             <footer className="bottom-action">
-                <button className="btn-save" onClick={() => logic.setShowConfirmModal(true)}>
+                <button className="btn-save" onClick={logic.intentarGuardar}>
                     GUARDAR REGISTRO
                 </button>
             </footer>
