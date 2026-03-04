@@ -27,17 +27,57 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
     // --- ESTADO: Listas desde BD ---
     const [listaCarreras, setListaCarreras] = useState<any[]>([]);
     const [listaMaterias, setListaMaterias] = useState<any[]>([]); 
+    const [listaAreas, setListaAreas] = useState<any[]>([]);
+    const [listaSemestres, setListaSemestres] = useState<any[]>([]); // Nuevo estado
+    const [listaLetrasGrupo, setListaLetrasGrupo] = useState<any[]>([]);
 
-    useEffect(() => {
-        fetch('http://localhost:3000/api/carreras')
-            .then(res => res.json())
-            .then(data => setListaCarreras(data))
-            .catch(err => console.error("Error cargando carreras:", err));
-
+    // 1. AGREGA ESTA FUNCIÓN AQUÍ
+    const cargarMaterias = () => {
         fetch('http://localhost:3000/api/materias')
             .then(res => res.json())
             .then(data => setListaMaterias(data))
             .catch(err => console.error("Error cargando materias:", err));
+    };
+
+    const cargarSemestres = () => {
+    fetch('http://localhost:3000/api/semestres')
+        .then(res => res.json())
+        .then(data => setListaSemestres(data))
+        .catch(err => console.error("Error cargando semestres:", err));
+    };
+
+    const cargarListasGrupos = () => {
+    // Cargamos Semestres
+    fetch('http://localhost:3000/api/semestres')
+        .then(res => res.json())
+        .then(data => setListaSemestres(data));
+
+    // Cargamos Letras (A, B, C...)
+    fetch('http://localhost:3000/api/grupos-letras')
+        .then(res => res.json())
+        .then(data => setListaLetrasGrupo(data));
+    };
+
+    useEffect(() => {
+        fetch('http://localhost:3000/api/carreras')
+            .then(res => res.json())
+            .then(data => setListaCarreras(data));
+
+        // 2. LLAMA A LA FUNCIÓN AQUÍ (reemplazando el fetch viejo de materias)
+        cargarMaterias();
+
+        cargarSemestres();
+
+        cargarListasGrupos()
+
+        fetch('http://localhost:3000/api/areas')
+            .then(res => res.json())
+            .then(data => {
+                setListaAreas(data);
+                if(data.length > 0) {
+                    setNuevaMateria(prev => ({ ...prev, idarea: data[0].idArea.toString(), salon: data[0].Observaciones }));
+                }
+            });
     }, []);
 
     // --- ESTADO: Datos del Maestro (Sin Grado Académico) ---
@@ -84,9 +124,18 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
     };
 
     const handleMateriaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setNuevaMateria(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        if (name === 'idarea') {
+            const areaSeleccionada = listaAreas.find(a => a.idArea.toString() === value);
+            setNuevaMateria(prev => ({ 
+                ...prev, 
+                idarea: value, 
+                salon: areaSeleccionada ? areaSeleccionada.Observaciones : '' 
+            }));
+        } else {
+            setNuevaMateria(prev => ({ ...prev, [name]: value }));
+        }
     };
-
     const toggleDia = (dia: DiaSemana) => {
         setNuevaMateria(prev => ({
             ...prev,
@@ -136,6 +185,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
             if (respuesta.ok) {
                 alert("✅ ¡Maestro y Horarios Guardados Exitosamente!");
+                cargarMaterias();
                 setImgSrc(null);
                 setHorario([]);
                 // Reiniciamos los campos
@@ -254,58 +304,69 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                             
                             <div className="form-group">
                                 <label>Materia</label>
-                                <select 
-                                    name="materia" 
-                                    className="input-field" 
-                                    value={nuevaMateria.materia} 
-                                    onChange={handleMateriaChange}
-                                >
-                                    <option value="">Seleccione una materia...</option>
-                                    {listaMaterias.map((m, index) => (
-                                        <option key={index} value={m.Materia}>
-                                            {m.Materia}
-                                        </option>
-                                    ))}
-                                </select>
+                                {/* NUEVO CÓDIGO (La solución) */}
+                            <input 
+                                type="text"
+                                list="opciones-materias"
+                                name="materia" 
+                                className="input-field" 
+                                value={nuevaMateria.materia} 
+                                onChange={handleMateriaChange}
+                                placeholder="Seleccione o escriba una materia nueva..."
+                                autoComplete="off"
+                            />
+                            <datalist id="opciones-materias">
+                                {listaMaterias.map((m, index) => (
+                                    <option key={index} value={m.Materia} />
+                                ))}
+                            </datalist>
                             </div>
                             
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Carrera</label>
-                                    <select name="carrera" className="input-field" value={nuevaMateria.carrera} onChange={handleMateriaChange}>
+                                    <select 
+                                        name="carrera" 
+                                        className="input-field" 
+                                        value={nuevaMateria.carrera} 
+                                        onChange={handleMateriaChange}
+                                    >
                                         <option value="">Seleccione...</option>
-                                        {listaCarreras.map(c => (
-                                            <option key={c.idCarrera} value={c.NombreCarrera}>{c.NombreCarrera}</option>
+                                        {listaCarreras.map((c, index) => (
+                                            // Usamos el nombre de la carrera tanto para el valor como para el texto
+                                            <option key={index} value={c.Carrera}>{c.Carrera}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
                                     <label>Salón / Área</label>
-                                    <select name="salon" className="input-field" value={nuevaMateria.salon} onChange={handleMateriaChange}>
-                                        <option value="AULA 1">AULA 1</option>
-                                        <option value="AULA 2">AULA 2</option>
-                                        <option value="AULA 3">AULA 3</option>
-                                        <option value="LABORATORIO 1">LABORATORIO 1</option>
-                                        <option value="LABORATORIO 2">LABORATORIO 2</option>
-                                        <option value="CENTRO DE CÓMPUTO">CENTRO DE CÓMPUTO</option>
+                                    <select name="idarea" className="input-field" value={nuevaMateria.idarea} onChange={handleMateriaChange}>
+                                        {listaAreas.map(a => (
+                                            <option key={a.idArea} value={a.idArea}>{a.Observaciones}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
 
                             <div className="form-row">
+                                {/* Selector de Semestre Dinámico */}
                                 <div className="form-group">
                                     <label>Semestre</label>
                                     <select name="semestre" className="input-field" value={nuevaMateria.semestre} onChange={handleMateriaChange}>
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
-                                            <option key={s} value={s}>{s}° Semestre</option>
+                                        <option value="">Seleccione...</option>
+                                        {listaSemestres.map((s, i) => (
+                                            <option key={i} value={s.Semestre}>{s.Semestre}° Semestre</option>
                                         ))}
                                     </select>
                                 </div>
+
+                                {/* Selector de Grupo Dinámico */}
                                 <div className="form-group">
                                     <label>Grupo</label>
                                     <select name="grupo" className="input-field" value={nuevaMateria.grupo} onChange={handleMateriaChange}>
-                                        {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(g => (
-                                            <option key={g} value={g}>Grupo {g}</option>
+                                        <option value="">Seleccione...</option>
+                                        {listaLetrasGrupo.map((g, i) => (
+                                            <option key={i} value={g.Grupo}>Grupo {g.Grupo}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -317,7 +378,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                     <input name="horaInicio" type="time" className="input-field" value={nuevaMateria.horaInicio} onChange={handleMateriaChange} />
                                 </div>
                                 <div className="form-group">
-                                    <label>Hora Fin</label>
+                                    <label>Hora Final</label>
                                     <input name="horaFin" type="time" className="input-field" value={nuevaMateria.horaFin} onChange={handleMateriaChange} />
                                 </div>
                             </div>
