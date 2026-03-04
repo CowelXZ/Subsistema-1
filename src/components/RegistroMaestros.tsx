@@ -145,13 +145,48 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
     // --- LÓGICA DE AGREGAR/ELIMINAR MATERIA ---
     const agregarMateria = () => {
-        if (!nuevaMateria.materia || !nuevaMateria.horaInicio || !nuevaMateria.horaFin || nuevaMateria.dias.length === 0) {
-            alert("Por favor completa todos los campos del horario (Materia, Horas y Días).");
-            return;
+        let errores: string[] = [];
+
+        // 1. Validaciones individuales y específicas (Dinámicas)
+        if (!nuevaMateria.materia) {
+            errores.push("• Materia: Escribe o selecciona una materia.");
+        }
+        if (!nuevaMateria.carrera) {
+            errores.push("• Carrera: Selecciona la carrera.");
+        }
+        if (!nuevaMateria.semestre) {
+            errores.push("• Semestre: Selecciona el semestre.");
+        }
+        if (!nuevaMateria.grupo) {
+            errores.push("• Grupo: Selecciona la letra del grupo.");
+        }
+        if (!nuevaMateria.horaInicio) {
+            errores.push("• Hora Inicio: Define a qué hora empieza la clase.");
+        }
+        if (!nuevaMateria.horaFin) {
+            errores.push("• Hora Final: Define a qué hora termina la clase.");
+        }
+        if (nuevaMateria.dias.length === 0) {
+            errores.push("• Días de Clase: Selecciona al menos un día (L, M, MM, J, V).");
         }
 
+        // 2. Validar la lógica del tiempo (solo si ambas horas ya fueron ingresadas)
+        if (nuevaMateria.horaInicio && nuevaMateria.horaFin) {
+            if (nuevaMateria.horaInicio >= nuevaMateria.horaFin) {
+                errores.push("• Horario inválido: La hora de inicio debe ser antes de la hora final.");
+            }
+        }
+
+        // 3. Si la "bolsa de errores" tiene algo, mostramos la alerta dinámica
+        if (errores.length > 0) {
+            alert("⚠️ No se puede agregar la materia. Te falta completar:\n\n" + errores.join("\n"));
+            return; 
+        }
+
+        // --- Si todo está correcto, se agrega al arreglo ---
         setHorario([...horario, { id: Date.now(), ...nuevaMateria }]);
         
+        // Limpiamos solo los campos de la materia (dejamos carrera y grupo por si agrega otra igual)
         setNuevaMateria(prev => ({ 
             ...prev, 
             materia: '', 
@@ -165,11 +200,51 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
     // --- GUARDAR EN BASE DE DATOS ---
     const guardarEnBaseDeDatos = async () => {
-        if (!teacherData.numeroEmpleado || !teacherData.nombres) {
-            alert("El número de empleado y el nombre son obligatorios.");
-            return;
+        let errores: string[] = [];
+
+        // 1. Validar Número de Empleado
+        if (!teacherData.numeroEmpleado) {
+            errores.push("• Número de Empleado: Falta ingresar el número.");
+        } else if (!/^\d+$/.test(teacherData.numeroEmpleado)) {
+            errores.push("• Número de Empleado: Solo se permiten números, borra cualquier letra o espacio.");
         }
 
+        const regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+
+        // 2. Validar Nombres
+        if (!teacherData.nombres) {
+            errores.push("• Nombre(s): Falta ingresar el nombre.");
+        } else if (!regexLetras.test(teacherData.nombres)) {
+            errores.push("• Nombre(s): Solo se aceptan letras, revisa que no haya números o símbolos.");
+        }
+
+        // 3. Validar Apellido Paterno
+        if (!teacherData.apellidoPaterno) {
+            errores.push("• Ap. Paterno: Falta ingresar el apellido paterno.");
+        } else if (!regexLetras.test(teacherData.apellidoPaterno)) {
+            errores.push("• Ap. Paterno: Solo se aceptan letras, revisa que no haya números o símbolos.");
+        }
+
+        // 4. Validar Apellido Materno (Opcional)
+        if (teacherData.apellidoMaterno && !regexLetras.test(teacherData.apellidoMaterno)) {
+            errores.push("• Ap. Materno: Solo se aceptan letras, revisa que no haya números o símbolos.");
+        }
+
+        // 5. Validar Correo
+        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!teacherData.correo) {
+            errores.push("• Correo Institucional: Falta ingresar el correo.");
+        } else if (!regexCorreo.test(teacherData.correo)) {
+            errores.push("• Correo Institucional: El formato es incorrecto (ej. válido: usuario@uat.edu.mx).");
+        }
+
+        // Si encontramos al menos un error, lanzamos la alerta dinámica y detenemos todo
+        if (errores.length > 0) {
+            alert("⚠️ No se puede guardar el registro. Por favor revisa lo siguiente:\n\n" + errores.join("\n"));
+            return; 
+        }
+
+        // --- Si llega hasta aquí, los datos están perfectos. Hacemos el fetch normal ---
         try {
             const datosParaEnviar = {
                 ...teacherData,

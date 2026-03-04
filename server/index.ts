@@ -303,6 +303,9 @@ app.get('/api/grupos-letras', async (req, res) => {
     } catch (error: any) { res.status(500).send(error.message); }
 });
 
+//6.3 Validaciones 
+
+
 // Registrar Nuevo Usuario (Alumno/Administrativo)
 app.post('/api/usuarios/crear', async (req, res) => {
     try {
@@ -350,8 +353,7 @@ app.post('/api/usuarios/crear', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
-
-
+ 
 // 7. Obtener lista de Materias Activas sin repetir
 app.get('/api/materias', async (req, res) => {
     try {
