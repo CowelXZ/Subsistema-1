@@ -18,7 +18,7 @@ interface Profesor {
     id: number;
     nombre: string;
     foto: string;
-    activo: boolean; // NUEVO: Determina si está activo o inactivo
+    activo: boolean; 
     clases: Clase[];
 }
 
@@ -29,22 +29,21 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
     const [busqueda, setBusqueda] = useState("");
     const [expandedProf, setExpandedProf] = useState<number | null>(null);
 
-    // --- ESTADOS DE EDICIÓN / CREACIÓN ---
     const [addingForProf, setAddingForProf] = useState<number | null>(null);
     const [editingClassId, setEditingClassId] = useState<number | null>(null);
     
-    // --- ESTADOS DEL FILTRO Y ORDENAMIENTO ---
     const [mostrarFiltros, setMostrarFiltros] = useState(false);
     const [filtroEstado, setFiltroEstado] = useState<'TODOS'|'ACTIVOS'|'INACTIVOS'>('TODOS');
     const [orden, setOrden] = useState<'AZ'|'ZA'|'RECIENTES'>('AZ');
 
-    // --- ESTADOS DEL MODAL DE ACTIVIDAD ---
-    const [modalActividad, setModalActividad] = useState<{
-        visible: boolean, profId: number | null, paso: 1 | 2
-    }>({ visible: false, profId: null, paso: 1 });
+    const [modalActividad, setModalActividad] = useState<{ visible: boolean, profId: number | null, paso: 1 | 2 }>({ visible: false, profId: null, paso: 1 });
 
+    // --- ESTADOS DINÁMICOS COMPLETOS ---
     const [listaCarreras, setListaCarreras] = useState<any[]>([]);
     const [listaMaterias, setListaMaterias] = useState<any[]>([]);
+    const [listaSemestres, setListaSemestres] = useState<any[]>([]);
+    const [listaLetrasGrupo, setListaLetrasGrupo] = useState<any[]>([]);
+    const [listaAreas, setListaAreas] = useState<any[]>([]); // NUEVO: Estado para salones
     
     const estadoInicialMateria = {
         materia: '', horaInicio: '', horaFin: '', dias: [] as string[],
@@ -59,54 +58,62 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
         } catch (error) { console.error("Error:", error); }
     };
 
+    // --- CARGA DE TODOS LOS CATÁLOGOS ---
     useEffect(() => {
         cargarCargaAcademica();
         fetch('http://localhost:3000/api/carreras').then(res => res.json()).then(data => setListaCarreras(data));
         fetch('http://localhost:3000/api/materias').then(res => res.json()).then(data => setListaMaterias(data));
+        fetch('http://localhost:3000/api/semestres').then(res => res.json()).then(data => setListaSemestres(data));
+        fetch('http://localhost:3000/api/grupos-letras').then(res => res.json()).then(data => setListaLetrasGrupo(data));
+        fetch('http://localhost:3000/api/areas').then(res => res.json()).then(data => setListaAreas(data)); // NUEVO
     }, []);
 
-    // --- LÓGICA DE FILTRADO Y ORDENAMIENTO ---
     let profesoresProcesados = [...profesores];
     
-    // 1. Búsqueda
-    if (busqueda) {
-        profesoresProcesados = profesoresProcesados.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
-    }
-    // 2. Filtro por Estado
+    if (busqueda) profesoresProcesados = profesoresProcesados.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
     if (filtroEstado === 'ACTIVOS') profesoresProcesados = profesoresProcesados.filter(p => p.activo);
     if (filtroEstado === 'INACTIVOS') profesoresProcesados = profesoresProcesados.filter(p => !p.activo);
     
-    // 3. Ordenamiento
     profesoresProcesados.sort((a, b) => {
         if (orden === 'AZ') return a.nombre.localeCompare(b.nombre);
         if (orden === 'ZA') return b.nombre.localeCompare(a.nombre);
-        if (orden === 'RECIENTES') return b.id - a.id; // IDs más altos = Registros más nuevos
+        if (orden === 'RECIENTES') return b.id - a.id; 
         return 0;
     });
 
-    const toggleExpand = (id: number) => {
-        setExpandedProf(expandedProf === id ? null : id);
-        cerrarFormulario();
-    };
-
+    const toggleExpand = (id: number) => { setExpandedProf(expandedProf === id ? null : id); cerrarFormulario(); };
     const cerrarFormulario = () => { setAddingForProf(null); setEditingClassId(null); setNuevaMateria(estadoInicialMateria); };
-
-    const handleMateriaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setNuevaMateria(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    
+    // --- LÓGICA DE ACTUALIZACIÓN DUAL (ID ÁREA + NOMBRE DEL SALÓN) ---
+    const handleMateriaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { 
+        const { name, value } = e.target;
+        if (name === 'idarea') {
+            const areaSeleccionada = listaAreas.find(a => a.idArea.toString() === value);
+            setNuevaMateria(prev => ({ 
+                ...prev, 
+                idarea: value, 
+                salon: areaSeleccionada ? areaSeleccionada.Observaciones : '' 
+            }));
+        } else {
+            setNuevaMateria(prev => ({ ...prev, [name]: value })); 
+        }
     };
 
-    const toggleDia = (dia: string) => {
-        setNuevaMateria(prev => ({
-            ...prev, dias: prev.dias.includes(dia) ? prev.dias.filter(d => d !== dia) : [...prev.dias, dia]
-        }));
-    };
+    const toggleDia = (dia: string) => { setNuevaMateria(prev => ({ ...prev, dias: prev.dias.includes(dia) ? prev.dias.filter(d => d !== dia) : [...prev.dias, dia] })); };
 
     const iniciarEdicion = (profId: number, clase: Clase) => {
         setAddingForProf(profId); setEditingClassId(clase.id);
+        
+        // Mapeo inverso: Buscar el ID del área basándonos en el nombre del salón guardado
+        const areaMatch = listaAreas.find(a => a.Observaciones === clase.salon);
+        const areaId = areaMatch ? areaMatch.idArea.toString() : '1';
+
         setNuevaMateria({
             materia: clase.materia, horaInicio: clase.horaInicio, horaFin: clase.horaFin, dias: clase.dias,
-            carrera: clase.carrera === 'N/A' ? '' : clase.carrera, salon: clase.salon === 'N/A' ? 'AULA 1' : clase.salon,
-            semestre: String(clase.semestre), grupo: clase.grupo === '-' ? 'A' : clase.grupo, idarea: '1'
+            carrera: clase.carrera === 'N/A' ? '' : clase.carrera, 
+            salon: clase.salon === 'N/A' ? 'AULA 1' : clase.salon,
+            semestre: String(clase.semestre), grupo: clase.grupo === '-' ? 'A' : clase.grupo, 
+            idarea: areaId // Pasamos el ID calculado
         });
     };
 
@@ -129,36 +136,28 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
         } catch (error) { console.error("Error:", error); }
     };
 
-    // --- FUNCIÓN DEL MODAL: Ejecuta el PUT en la BD ---
     const cambiarEstado = async (nuevoEstado: number) => {
         if (!modalActividad.profId) return;
         try {
             const res = await fetch(`http://localhost:3000/api/maestros/estado/${modalActividad.profId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estado: nuevoEstado })
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: nuevoEstado })
             });
-            if (res.ok) {
-                await cargarCargaAcademica(); // Recargar datos frescos
-                setModalActividad(prev => ({ ...prev, paso: 2 })); // Pasar a pantalla de éxito
-            }
+            if (res.ok) { await cargarCargaAcademica(); setModalActividad(prev => ({ ...prev, paso: 2 })); }
         } catch (error) { console.error("Error cambiando estado", error); }
     };
 
     return (
         <div className="main-wrapper">
-            <Header titulo="ASIGNACIÓN DE CARGA ACADÉMICA" onBack={onBack} />
+            <Header titulo="Administracion de Maestros" onBack={onBack} />
 
             <main className="dashboard-grid single-column">
                 
-                {/* --- BARRA DE BÚSQUEDA Y FILTROS --- */}
                 <section className="card search-bar-card" style={{ gap: '15px' }}>
                     <div className="search-wrapper full-width">
                         <input type="text" placeholder="Buscar profesor por nombre..." className="input-field search-input" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
                         <button className="search-btn"><span className="material-icons">search</span></button>
                     </div>
 
-                    {/* Menú Desplegable de Filtros */}
                     <div className="filter-wrapper">
                         <button className="btn-filter" onClick={() => setMostrarFiltros(!mostrarFiltros)}>
                             <span className="material-icons">filter_list</span>
@@ -195,26 +194,18 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                                     </div>
                                 </div>
                                 <div className="prof-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                    
-                                    {/* ETIQUETA DE ESTADO*/}
                                     <button 
                                         className={`status-badge ${prof.activo ? 'active' : 'inactive'}`}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setModalActividad({ visible: true, profId: prof.id, paso: 1 });
-                                        }}
+                                        onClick={(e) => { e.stopPropagation(); setModalActividad({ visible: true, profId: prof.id, paso: 1 }); }}
                                     >
                                         {prof.activo ? 'ACTIVO' : 'INACTIVO'}
                                     </button>
-
-                                    {/* BOTÓN DESPLEGAR NARANJA */}
                                     <button className="btn-icon-secondary" style={{ backgroundColor: 'var(--orange)', color: 'white', border: 'none' }}>
                                         <span className="material-icons">{expandedProf === prof.id ? 'expand_less' : 'expand_more'}</span>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* CONTENIDO EXPANDIDO (Formulario / Tabla) - EXACTAMENTE IGUAL */}
                             {expandedProf === prof.id && (
                                 <div className="prof-body animate-fade-in">
                                     {prof.clases.length > 0 && (
@@ -241,12 +232,8 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                                                         </td>
                                                         <td>
                                                             <div className="row-actions">
-                                                                <button className="btn-mini edit" title="Editar" onClick={() => iniciarEdicion(prof.id, clase)}>
-                                                                    <span className="material-icons">edit</span>
-                                                                </button>
-                                                                <button className="btn-mini delete" title="Eliminar" onClick={() => eliminarMateria(clase.id)}>
-                                                                    <span className="material-icons">delete</span>
-                                                                </button>
+                                                                <button className="btn-mini edit" title="Editar" onClick={() => iniciarEdicion(prof.id, clase)}><span className="material-icons">edit</span></button>
+                                                                <button className="btn-mini delete" title="Eliminar" onClick={() => eliminarMateria(clase.id)}><span className="material-icons">delete</span></button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -255,27 +242,33 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                                         </table>
                                     )}
 
-                                    {/* Formulario Naranja */}
                                     {addingForProf === prof.id ? (
                                         <div className="hours-section animate-fade-in" style={{ marginTop: '20px', padding: '20px', border: '1px solid #eee' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                                                 <h3 style={{ color: 'var(--uat-guinda)', margin: 0 }}>
                                                     {editingClassId ? 'Editar Materia' : 'Agregar Nueva Materia'}
                                                 </h3>
-                                                <button className="btn-mini" onClick={cerrarFormulario}>
-                                                    <span className="material-icons">close</span>
-                                                </button>
+                                                <button className="btn-mini" onClick={cerrarFormulario}><span className="material-icons">close</span></button>
                                             </div>
 
                                             <div className="user-form">
                                                 <div className="form-group">
                                                     <label>Materia</label>
-                                                    <select name="materia" className="input-field" value={nuevaMateria.materia} onChange={handleMateriaChange}>
-                                                        <option value="">Seleccione una materia...</option>
+                                                    <input 
+                                                        type="text"
+                                                        list={`opciones-materias-${prof.id}`}
+                                                        name="materia" 
+                                                        className="input-field" 
+                                                        value={nuevaMateria.materia} 
+                                                        onChange={handleMateriaChange}
+                                                        placeholder="Seleccione o escriba una materia nueva..."
+                                                        autoComplete="off"
+                                                    />
+                                                    <datalist id={`opciones-materias-${prof.id}`}>
                                                         {listaMaterias.map((m, index) => (
-                                                            <option key={index} value={m.Materia}>{m.Materia}</option>
+                                                            <option key={index} value={m.Materia} />
                                                         ))}
-                                                    </select>
+                                                    </datalist>
                                                 </div>
                                                 
                                                 <div className="form-row" style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
@@ -283,18 +276,19 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                                                         <label>Carrera</label>
                                                         <select name="carrera" className="input-field" value={nuevaMateria.carrera} onChange={handleMateriaChange}>
                                                             <option value="">Seleccione...</option>
-                                                            {listaCarreras.map(c => (
-                                                                <option key={c.idCarrera} value={c.NombreCarrera}>{c.NombreCarrera}</option>
+                                                            {listaCarreras.map((c, index) => (
+                                                                <option key={index} value={c.Carrera}>{c.Carrera}</option>
                                                             ))}
                                                         </select>
                                                     </div>
                                                     <div className="form-group" style={{ flex: 1 }}>
                                                         <label>Salón / Área</label>
-                                                        <select name="salon" className="input-field" value={nuevaMateria.salon} onChange={handleMateriaChange}>
-                                                            <option value="AULA 1">AULA 1</option>
-                                                            <option value="AULA 2">AULA 2</option>
-                                                            <option value="AULA 3">AULA 3</option>
-                                                            <option value="CENTRO DE CÓMPUTO">CENTRO DE CÓMPUTO</option>
+                                                        <select name="idarea" className="input-field" value={nuevaMateria.idarea} onChange={handleMateriaChange}>
+                                                            <option value="">Seleccione...</option>
+                                                            {/* NUEVA CARGA DE SALONES DINÁMICOS */}
+                                                            {listaAreas.map(a => (
+                                                                <option key={a.idArea} value={a.idArea}>{a.Observaciones}</option>
+                                                            ))}
                                                         </select>
                                                     </div>
                                                 </div>
@@ -303,16 +297,18 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                                                     <div className="form-group" style={{ flex: 1 }}>
                                                         <label>Semestre</label>
                                                         <select name="semestre" className="input-field" value={nuevaMateria.semestre} onChange={handleMateriaChange}>
-                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
-                                                                <option key={s} value={s}>{s}° Semestre</option>
+                                                            <option value="">Seleccione...</option>
+                                                            {listaSemestres.map((s, index) => (
+                                                                <option key={index} value={s.Semestre}>{s.Semestre}° Semestre</option>
                                                             ))}
                                                         </select>
                                                     </div>
                                                     <div className="form-group" style={{ flex: 1 }}>
                                                         <label>Grupo</label>
                                                         <select name="grupo" className="input-field" value={nuevaMateria.grupo} onChange={handleMateriaChange}>
-                                                            {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(g => (
-                                                                <option key={g} value={g}>Grupo {g}</option>
+                                                            <option value="">Seleccione...</option>
+                                                            {listaLetrasGrupo.map((g, index) => (
+                                                                <option key={index} value={g.Grupo}>Grupo {g.Grupo}</option>
                                                             ))}
                                                         </select>
                                                     </div>
@@ -364,7 +360,7 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                 </div>
             </main>
 
-            {/* --- MODAL FLOTANTE*/}
+            {/* MODAL DE ACTIVIDAD */}
             {modalActividad.visible && (
                 <div className="modal-overlay">
                     <div className="modal-box">
@@ -384,9 +380,7 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                                 <div className="modal-success-content animate-fade-in">
                                     <div className="success-icon"><span className="material-icons">check</span></div>
                                     <p>Cambios realizados de forma correcta</p>
-                                    <button className="btn-understood" onClick={() => setModalActividad({ visible: false, profId: null, paso: 1 })}>
-                                        Entendido
-                                    </button>
+                                    <button className="btn-understood" onClick={() => setModalActividad({ visible: false, profId: null, paso: 1 })}>Entendido</button>
                                 </div>
                             )}
                         </div>
