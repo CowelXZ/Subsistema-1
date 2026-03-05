@@ -117,15 +117,49 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
         });
     };
 
-    const guardarNuevaMateria = async (profId: number) => {
-        if (!nuevaMateria.materia || !nuevaMateria.horaInicio || !nuevaMateria.horaFin || nuevaMateria.dias.length === 0 || !nuevaMateria.carrera) {
-            alert("Por favor completa la materia, la carrera, las horas y los días."); return;
+const guardarNuevaMateria = async (profId: number) => {
+        let errores: string[] = [];
+
+        // 1. Validaciones individuales heredadas de RegistroMaestros
+        if (!nuevaMateria.materia) errores.push("• Materia: Escribe o selecciona una materia.");
+        if (!nuevaMateria.carrera) errores.push("• Carrera: Selecciona la carrera.");
+        if (!nuevaMateria.semestre) errores.push("• Semestre: Selecciona el semestre.");
+        if (!nuevaMateria.grupo) errores.push("• Grupo: Selecciona la letra del grupo.");
+        if (!nuevaMateria.horaInicio) errores.push("• Hora Inicio: Define a qué hora empieza la clase.");
+        if (!nuevaMateria.horaFin) errores.push("• Hora Final: Define a qué hora termina la clase.");
+        if (nuevaMateria.dias.length === 0) errores.push("• Días de Clase: Selecciona al menos un día (L, M, Mi, J, V).");
+
+        // 2. Validación de la lógica del tiempo
+        if (nuevaMateria.horaInicio && nuevaMateria.horaFin) {
+            if (nuevaMateria.horaInicio >= nuevaMateria.horaFin) {
+                errores.push("• Horario inválido: La hora de inicio debe ser antes de la hora final.");
+            }
         }
+
+        // 3. Mostrar errores si los hay
+        if (errores.length > 0) {
+            alert("⚠️ No se puede guardar la materia. Por favor revisa lo siguiente:\n\n" + errores.join("\n"));
+            return;
+        }
+
+        // --- Si todo está correcto, hacemos el guardado/edición ---
         try {
             const url = editingClassId ? `http://localhost:3000/api/maestros/editar-materia/${editingClassId}` : 'http://localhost:3000/api/maestros/agregar-materia';
-            const res = await fetch(url, { method: editingClassId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...nuevaMateria, idMaestro: profId }) });
-            if (res.ok) { await cargarCargaAcademica(); cerrarFormulario(); }
-        } catch (error) { console.error("Error:", error); }
+            const res = await fetch(url, { 
+                method: editingClassId ? 'PUT' : 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ ...nuevaMateria, idMaestro: profId }) 
+            });
+            
+            if (res.ok) { 
+                await cargarCargaAcademica(); 
+                cerrarFormulario(); 
+            } else {
+                alert("❌ Error al comunicarse con el servidor.");
+            }
+        } catch (error) { 
+            console.error("Error:", error); 
+        }
     };
 
     const eliminarMateria = async (idClase: number) => {

@@ -347,6 +347,103 @@ app.post('/api/usuarios/crear', async (req, res) => {
     }
 });
 
+//6.3 // Buscar maestro y todo su horario por Matrícula (Usando Stored Procedure)
+app.get('/api/maestros/buscar/:matricula', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión");
+
+        const { matricula } = req.params;
+
+        // 1. Buscamos los datos principales del maestro (AGREGAMOS LA COLUMNA "Foto")
+        const maestroResult = await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .query(`
+                SELECT idMaestro, Nombre, ApellidoPaterno, ApellidoMaterno, Correo, Sexo, Foto 
+                FROM Maestros 
+                WHERE Matricula = @matricula AND Activo = 1
+            `);
+        
+        if (maestroResult.recordset.length === 0) {
+            return res.status(404).json({ message: "No encontrado" }); 
+        }
+
+        const maestro = maestroResult.recordset[0];
+
+        // --- CONVERSIÓN DE FOTO ---
+        // SQL Server guarda la foto como un Buffer (binario). React necesita un texto Base64.
+        let fotoBase64 = null;
+        if (maestro.Foto) {
+            fotoBase64 = `data:image/jpeg;base64,${maestro.Foto.toString('base64')}`;
+        }
+
+        // 2. Ejecutamos tu nuevo Procedimiento Almacenado para traer el horario
+        const materiasResult = await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .execute('BuscarHorarioMaestroWeb'); // <-- ¡Aquí llamamos al SP!
+
+        // Devolvemos el paquete completo a React
+        res.json({
+            maestro: {
+                ...maestro,
+                Foto: fotoBase64 // Sobrescribimos la foto original con la versión convertida
+            },
+            materias: materiasResult.recordset
+        });
+
+    } catch (error: any) {
+        res.status(500).send(error.message);
+    }
+});
+
+// Registrar Nuevo Usuario (Alumno/Administrativo)
+app.post('/api/usuarios/crear', async (req, res) => {
+    try {
+        const {
+            matricula, nombres, apellidoPaterno, apellidoMaterno,
+            grado, grupo, carrera, sexo, observaciones, fotoBase64
+        } = req.body;
+
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión a BD");
+
+        // 1. Convertir la foto de Base64 a Buffer (Binario para SQL)
+        let fotoBuffer = null;
+        if (fotoBase64) {
+            const base64Data = fotoBase64.split(';base64,').pop();
+            fotoBuffer = Buffer.from(base64Data, 'base64');
+        }
+
+        // 2. Mapear el Sexo a tinyint (Como lo definiste en tu tabla Usuarios)
+        let sexoId = 1; // Default: Masculino
+        if (sexo === 'F') sexoId = 2; // Femenino
+        if (sexo === 'NB') sexoId = 3; // No Binario
+
+        // 3. Ejecutar el Stored Procedure
+        await pool.request()
+            .input('autoridad', sql.VarChar, 'A') // 'A' de Alumno (Cámbialo si manejas otros roles en esta vista)
+            .input('usuario', sql.VarChar, matricula)
+            .input('puesto', sql.VarChar, carrera) // Usamos 'Puesto' para guardar la carrera según tu lógica
+            .input('ubicacion', sql.VarChar, grupo) // Guardamos el grupo en 'Ubicacion'
+            .input('nombre', sql.VarChar, nombres)
+            .input('apellidopaterno', sql.VarChar, apellidoPaterno)
+            .input('apellidomaterno', sql.VarChar, apellidoMaterno || '')
+            .input('foto', sql.VarBinary, fotoBuffer)
+            .input('sexo', sql.TinyInt, sexoId)
+            .input('activo', sql.TinyInt, 1) // 1 = Activo
+            .input('status', sql.VarChar, 'ACTIVO')
+            .input('fechacreacion', sql.DateTime, new Date()) // El SP lo pide en la firma, aunque lo reescriba internamente
+            .input('observaciones', sql.VarChar, observaciones || '')
+            .execute('RegistrarUsuarios');
+
+        res.status(200).json({ mensaje: 'Usuario registrado exitosamente' });
+
+    } catch (error: any) {
+        console.error("Error al guardar usuario:", error);
+        res.status(500).send(error.message);
+    }
+});
+
 // 7. Obtener lista de Materias Activas sin repetir
 app.get('/api/materias', async (req, res) => {
     try {
