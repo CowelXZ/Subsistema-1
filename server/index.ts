@@ -303,8 +303,54 @@ app.get('/api/grupos-letras', async (req, res) => {
     } catch (error: any) { res.status(500).send(error.message); }
 });
 
-//6.3 Validaciones 
+//6.3 // Buscar maestro y todo su horario por Matrícula (Usando Stored Procedure)
+app.get('/api/maestros/buscar/:matricula', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión");
 
+        const { matricula } = req.params;
+
+        // 1. Buscamos los datos principales del maestro (AGREGAMOS LA COLUMNA "Foto")
+        const maestroResult = await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .query(`
+                SELECT idMaestro, Nombre, ApellidoPaterno, ApellidoMaterno, Correo, Sexo, Foto 
+                FROM Maestros 
+                WHERE Matricula = @matricula AND Activo = 1
+            `);
+        
+        if (maestroResult.recordset.length === 0) {
+            return res.status(404).json({ message: "No encontrado" }); 
+        }
+
+        const maestro = maestroResult.recordset[0];
+
+        // --- CONVERSIÓN DE FOTO ---
+        // SQL Server guarda la foto como un Buffer (binario). React necesita un texto Base64.
+        let fotoBase64 = null;
+        if (maestro.Foto) {
+            fotoBase64 = `data:image/jpeg;base64,${maestro.Foto.toString('base64')}`;
+        }
+
+        // 2. Ejecutamos tu nuevo Procedimiento Almacenado para traer el horario
+        const materiasResult = await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .execute('BuscarHorarioMaestroWeb'); // <-- ¡Aquí llamamos al SP!
+
+        // Devolvemos el paquete completo a React
+        res.json({
+            maestro: {
+                ...maestro,
+                Foto: fotoBase64 // Sobrescribimos la foto original con la versión convertida
+            },
+            materias: materiasResult.recordset
+        });
+
+    } catch (error: any) {
+        res.status(500).send(error.message);
+    }
+});
 
 // Registrar Nuevo Usuario (Alumno/Administrativo)
 app.post('/api/usuarios/crear', async (req, res) => {

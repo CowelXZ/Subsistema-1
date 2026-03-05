@@ -278,31 +278,88 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
         }
     };
 
-    // --- BÚSQUEDA DE EMPLEADO EXISTENTE ---
-    const buscarPorEmpleado = async () => {
-        if (!teacherData.numeroEmpleado) return;
-        try {
-            const res = await fetch(`http://localhost:3000/api/usuarios/${teacherData.numeroEmpleado}`);
-            if (res.ok) {
-                const data = await res.json();
-                setTeacherData(prev => ({
-                    ...prev,
-                    nombres: data.nombres,
-                    apellidoPaterno: data.apellidoPaterno,
-                    apellidoMaterno: data.apellidoMaterno || '',
-                    correo: data.observaciones || '', 
-                    sexo: data.sexo || 'M'
-                }));
-                if (data.foto) setImgSrc(data.foto);
-                alert("Docente encontrado. Modo edición activado.");
-            } else {
-                alert("Docente no encontrado. Puedes registrarlo como nuevo.");
-            }
-        } catch (error) {
-            console.error(error);
+    const handleTeacherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        let valorFiltrado = value;
+
+        // Validación 1: Número de Empleado (SOLO NÚMEROS)
+        if (name === 'numeroEmpleado') {
+            valorFiltrado = value.replace(/\D/g, ''); // Borra lo que NO sea número
+        } 
+        // Validación 2: Nombres y Apellidos (SOLO LETRAS Y ESPACIOS)
+        else if (name === 'nombres' || name === 'apellidoPaterno' || name === 'apellidoMaterno') {
+            valorFiltrado = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); // Borra números y símbolos
         }
+
+        // Actualizamos el estado con el valor limpio
+        setTeacherData(prev => ({ ...prev, [name]: valorFiltrado }));
     };
 
+
+    // --- BÚSQUEDA DE MAESTRO Y HORARIO EXISTENTE ---
+    const buscarMaestro = async () => {
+        if (!teacherData.numeroEmpleado) return;
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/maestros/buscar/${teacherData.numeroEmpleado}`);
+            
+            if (res.ok) {
+                const data = await res.json();
+                
+                // 1. Llenamos los datos personales del maestro silenciosamente
+                setTeacherData(prev => ({
+                    ...prev,
+                    nombres: data.maestro.Nombre || '',
+                    apellidoPaterno: data.maestro.ApellidoPaterno || '',
+                    apellidoMaterno: data.maestro.ApellidoMaterno || '',
+                    correo: data.maestro.Correo || '',
+                    // CAMBIO AQUÍ: Usamos 'M' para que coincida con el HTML de tus radio buttons
+                    sexo: data.maestro.Sexo || 'M' 
+                }));
+
+                // 2. Cargamos la foto en el cuadro negro si existe
+                if (data.maestro.Foto) {
+                    setImgSrc(data.maestro.Foto); // Esto apaga la cámara y pone la foto de la base de datos
+                } else {
+                    setImgSrc(null); // Esto asegura que la cámara siga prendida si no hay foto
+                }
+
+                // 3. Traducimos y llenamos la tabla de materias
+                const materiasMapeadas = data.materias.map((m: any, index: number) => {
+                    let diasClase = [];
+                    if (m.lunes === 1) diasClase.push('L');
+                    if (m.martes === 1) diasClase.push('M');
+                    if (m.miercoles === 1) diasClase.push('MM');
+                    if (m.jueves === 1) diasClase.push('J');
+                    if (m.viernes === 1) diasClase.push('V');
+
+                    return {
+                        id: Date.now() + index, 
+                        materia: m.materia,
+                        carrera: m.carrera,
+                        semestre: m.semestre,
+                        grupo: m.grupo,
+                        horaInicio: m.horaInicio,
+                        horaFin: m.horaFin,
+                        dias: diasClase,
+                        salon: m.salon
+                    };
+                });
+
+                setHorario(materiasMapeadas);
+                
+            } else if (res.status === 404) {
+                // Si no existe, limpiamos los campos y la tabla por si había datos de una búsqueda anterior
+                setTeacherData(prev => ({
+                    ...prev, nombres: '', apellidoPaterno: '', apellidoMaterno: '', correo: '', sexo: 'M'
+                }));
+                setHorario([]);
+                setImgSrc(null);
+            }
+        } catch (error) {
+            console.error("Error al buscar maestro:", error);
+        }
+    };
     return (
         <div className="main-wrapper">
             <Header titulo="Registro de Maestros" onBack={onBack} />
@@ -318,23 +375,28 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                         <form className="user-form">
                             <div className="form-group">
                                 <label>Número de Empleado</label>
-                                <div className="search-wrapper">
+                                <div style={{ position: 'relative' }}>
                                     <input 
-                                        name="numeroEmpleado" 
                                         type="text" 
-                                        className="input-field search-input" 
+                                        name="numeroEmpleado" 
+                                        className="input-field" 
                                         value={teacherData.numeroEmpleado} 
-                                        onChange={handleChange} 
-                                        onKeyDown={e => {
+                                        onChange={handleTeacherChange}
+                                        onBlur={buscarMaestro} /* <-- AQUÍ SE LLAMA AL DAR CLIC AFUERA */
+                                        onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                buscarPorEmpleado();
+                                                e.preventDefault(); 
+                                                buscarMaestro(); /* <-- AQUÍ SE LLAMA AL DAR ENTER */
                                             }
-                                        }} 
+                                        }}
                                     />
-                                    <button type="button" className="search-btn" onClick={buscarPorEmpleado}>
-                                        <span className="material-icons">search</span>
-                                    </button>
+                                    {/* Este es el icono de la lupa que ejecuta la búsqueda al darle clic */}
+                                    <span 
+                                        className="search-icon" 
+                                        onClick={buscarMaestro} /* <-- AQUÍ SE LLAMA AL DAR CLIC EN LA LUPA */
+                                        style={{ position: 'absolute', right: '10px', top: '10px', cursor: 'pointer' }}
+                                    >
+                                    </span>
                                 </div>
                             </div>
 
@@ -534,16 +596,15 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
                     {/* CÁMARA */}
                     <section className="card camera-card-compact">
+                        
                         <div className="card-header compact-header">
                             <h2>Fotografía</h2>
-                            {!imgSrc && (
-                                <button className="btn-outline btn-sm" onClick={capturarFoto}>
-                                    <span className="material-icons">photo_camera</span> Capturar
-                                </button>
-                            )}
+                            {/* Eliminamos el botón pequeño de aquí como lo pediste */}
                         </div>
+
                         <div className="camera-container compact-view">
                             <div className="camera-viewport viewport-sm">
+                                {/* --- ZONA DE VISUALIZACIÓN --- */}
                                 {imgSrc ? (
                                     <img src={imgSrc} className="video-feed" alt="Captura de docente" />
                                 ) : (
@@ -556,18 +617,31 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                     />
                                 )}
                             </div>
-                        </div>
-                        <div className="camera-actions compact-actions">
-                            <div className="action-buttons-row">
-                                {imgSrc ? (
-                                    <button className="btn-clean btn-sm" onClick={limpiarFoto} type="button">
-                                        <span className="material-icons">delete</span> Retomar Foto
-                                    </button>
-                                ) : (
-                                    <button className="btn-capture btn-sm" onClick={capturarFoto} type="button">
-                                        <span className="material-icons">camera_alt</span> Tomar Foto
-                                    </button>
-                                )}
+
+                            {/* --- ZONA DE BOTONES GRANDES (Con Iconos Profesionales) --- */}
+                            <div className="camera-actions compact-actions" style={{ marginTop: '15px' }}>
+                                <div className="action-buttons-row">
+                                    {imgSrc ? (
+                                        <button 
+                                            type="button" 
+                                            className="btn-add-hour" 
+                                            onClick={() => setImgSrc(null)}
+                                            // Agregamos fontSize para crecer la letra, y display flex para alinear el icono con el texto
+                                            style={{ width: '100%', fontSize: '17px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                                        >
+                                            <span className="material-icons">refresh</span> RETOMAR FOTO
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            type="button" 
+                                            className="btn-add-hour" 
+                                            onClick={capturarFoto}
+                                            style={{ width: '100%', fontSize: '17px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                                        >
+                                            <span className="material-icons">photo_camera</span> CAPTURAR
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </section>
