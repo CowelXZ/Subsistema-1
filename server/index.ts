@@ -58,7 +58,7 @@ app.get('/api/areas', async (req, res) => {
 });
 
 // 3. Buscar Usuario por Código (Usando SP)
-/*
+
 app.get('/api/usuarios/:codigo', async (req, res) => {
     try {
         const { codigo } = req.params;
@@ -450,9 +450,9 @@ app.get('/api/maestros/buscar/:matricula', async (req, res) => {
                 FROM Maestros 
                 WHERE Matricula = @matricula AND Activo = 1
             `);
-        
+
         if (maestroResult.recordset.length === 0) {
-            return res.status(404).json({ message: "No encontrado" }); 
+            return res.status(404).json({ message: "No encontrado" });
         }
 
         const maestro = maestroResult.recordset[0];
