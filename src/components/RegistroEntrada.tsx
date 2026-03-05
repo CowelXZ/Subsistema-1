@@ -173,8 +173,8 @@ export const RegistroEntrada: React.FC<Props> = ({
                             </button>
 
                             <button className="btn-secondary-action btn-full-width orange" onClick={onNavigateToCarga}>
-                                <span className="material-icons">calendar_month</span>
-                                Gestión de Carga Académica
+                                <span className="material-icons">admin_panel_settings</span>
+                                Administracion de Maestros
                             </button>
                         </div>
                     </div>

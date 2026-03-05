@@ -26,6 +26,44 @@ app.get('/api/test', async (req, res) => {
 app.get('/api/carreras', async (req, res) => {
     try {
         const pool = await getConnection();
+        if (!pool) throw new Error("No hay conexión");
+
+        // Usamos DISTINCT para que no nos traiga 20 veces la misma carrera
+        const result = await pool.request().query(`
+            SELECT DISTINCT Carrera 
+            FROM Grupos 
+            WHERE Activo = 1 AND Carrera IS NOT NULL 
+            ORDER BY Carrera ASC
+        `);
+
+        res.json(result.recordset);
+    } catch (error: any) {
+        res.status(500).send(error.message);
+    }
+});
+
+// 3. Obtener lista de Áreas (Salones)
+app.get('/api/areas', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión a BD");
+
+        // Traemos solo las áreas que estén activas
+        const result = await pool.request().query('SELECT idArea, Area, Observaciones FROM Areas WHERE Activo = 1');
+        res.json(result.recordset);
+    } catch (error: any) {
+        console.error("Error cargando areas:", error);
+        res.status(500).send(error.message);
+    }
+});
+
+// 3. Buscar Usuario por Código (Usando SP)
+/*
+app.get('/api/usuarios/:codigo', async (req, res) => {
+    try {
+        const { codigo } = req.params;
+        const pool = await getConnection();
+
         if (!pool) throw new Error("Sin conexión a BD");
 
         const result = await pool.request().query(`
@@ -277,7 +315,7 @@ app.post('/api/maestros/crear', async (req, res) => {
             .input('nombre', sql.VarChar, nombres)
             .input('apellidoPaterno', sql.VarChar, apellidoPaterno)
             .input('apellidoMaterno', sql.VarChar, apellidoMaterno || '')
-            .input('gradoAcademico', sql.VarChar, gradoAcademico || 'Licenciatura')
+            .input('gradoAcademico', sql.VarChar, '')
             .input('sexo', sql.VarChar, valorSexo)
             .input('correo', sql.VarChar, correo || '')
             .input('foto', sql.VarBinary, fotoBuffer)
@@ -285,55 +323,29 @@ app.post('/api/maestros/crear', async (req, res) => {
 
         const idMaestroGenerado = resultMaestro.recordset[0].idMaestro;
 
-        // --- PASO 3: Guardar el Horario ---
+        // --- PASO 3: Guardar el Horario (CON FORMATO UNIVERSAL) ---
         if (horario && horario.length > 0) {
             for (const clase of horario) {
-                const lunes = clase.dias.includes('L') ? 1 : 0;
-                const martes = clase.dias.includes('M') ? 1 : 0;
-                const miercoles = clase.dias.includes('MM') ? 1 : 0;
-                const jueves = clase.dias.includes('J') ? 1 : 0;
-                const viernes = clase.dias.includes('V') ? 1 : 0;
+                // Usamos el formato YYYYMMDD que es el estándar más seguro en SQL Server
+                const horaInicioStr = `19000101 ${clase.horaInicio}:00`;
+                const horaFinStr = `19000101 ${clase.horaFin}:00`;
 
-                const horaInicioStr = `1900-01-01 ${clase.horaInicio}:00.000`;
-                const horaFinStr = `1900-01-01 ${clase.horaFin}:00.000`;
-
-                // A) Insertar Asignatura (SOLO COLUMNAS QUE EXISTEN)
-                // Quitamos: carrera, salon, semestre. Dejamos idgrupo fijo en 1 o null según tu tabla.
-                const resultAsig = await pool.request()
+                await pool.request()
                     .input('idMaestro', sql.Int, idMaestroGenerado)
                     .input('materia', sql.VarChar, clase.materia)
-                    .query(`
-                        INSERT INTO Asignaturas (idMaestro, Maestro, Materia, activo, idgrupo)
-                        OUTPUT INSERTED.idasignatura
-                        VALUES (@idMaestro, 'POR ACTUALIZAR', @materia, 1, 1);
-                    `);
-                const idAsignatura = resultAsig.recordset[0].idasignatura;
-
-                // B) Insertar Periodo
-                const resultPer = await pool.request()
-                    .input('horaInicio', sql.VarChar, horaInicioStr)
-                    .input('horaFin', sql.VarChar, horaFinStr)
-                    .input('lunes', sql.TinyInt, lunes)
-                    .input('martes', sql.TinyInt, martes)
-                    .input('miercoles', sql.TinyInt, miercoles)
-                    .input('jueves', sql.TinyInt, jueves)
-                    .input('viernes', sql.TinyInt, viernes)
-                    .query(`
-                        INSERT INTO Periodos (hora_inicio, hora_fin, lunes, martes, miercoles, jueves, viernes, activo)
-                        OUTPUT INSERTED.idperiodo
-                        VALUES (@horaInicio, @horaFin, @lunes, @martes, @miercoles, @jueves, @viernes, 1);
-                    `);
-                const idPeriodo = resultPer.recordset[0].idperiodo;
-
-                // C) Crear relación en Horarios
-                await pool.request()
-                    .input('idasignatura', sql.Int, idAsignatura)
-                    .input('idperiodo', sql.Int, idPeriodo)
+                    .input('hora_inicio', sql.VarChar, horaInicioStr)
+                    .input('hora_fin', sql.VarChar, horaFinStr)
+                    .input('grupo', sql.Char, clase.grupo || 'A')
+                    .input('semestre', sql.Int, parseInt(clase.semestre) || 1)
+                    .input('lunes', sql.TinyInt, clase.dias.includes('L') ? 1 : 0)
+                    .input('martes', sql.TinyInt, clase.dias.includes('M') ? 1 : 0)
+                    .input('miercoles', sql.TinyInt, clase.dias.includes('MM') ? 1 : 0)
+                    .input('jueves', sql.TinyInt, clase.dias.includes('J') ? 1 : 0)
+                    .input('viernes', sql.TinyInt, clase.dias.includes('V') ? 1 : 0)
                     .input('idarea', sql.Int, parseInt(clase.idarea) || 1)
-                    .query(`
-                        INSERT INTO Horarios (idasignatura, idperiodo, idArea, activo)
-                        VALUES (@idasignatura, @idperiodo, @idarea, 1);
-                    `);
+                    .input('salon', sql.VarChar, clase.salon || '')
+                    .input('carrera', sql.VarChar, clase.carrera || '')
+                    .execute('RegistrarHorarioWeb');
             }
         }
 
@@ -343,6 +355,35 @@ app.post('/api/maestros/crear', async (req, res) => {
         console.error("Error al registrar maestro completo:", error);
         res.status(500).send(error.message);
     }
+});
+
+// 6.1 Obtener lista de Semestres existentes en la tabla Grupos
+// 1. Semestres corregido (Elimina el 0 y nulos)
+app.get('/api/semestres', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        const result = await pool.request().query(`
+            SELECT DISTINCT Semestre 
+            FROM Grupos 
+            WHERE Activo = 1 AND Semestre > 0 
+            ORDER BY Semestre ASC
+        `);
+        res.json(result.recordset);
+    } catch (error: any) { res.status(500).send(error.message); }
+});
+
+// 6.2 NUEVO: Letras de Grupo (A, B, C...) dinámicas
+app.get('/api/grupos-letras', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        const result = await pool.request().query(`
+            SELECT DISTINCT Grupo 
+            FROM Grupos 
+            WHERE Activo = 1 AND Grupo IS NOT NULL AND Grupo <> ''
+            ORDER BY Grupo ASC
+        `);
+        res.json(result.recordset);
+    } catch (error: any) { res.status(500).send(error.message); }
 });
 
 // Registrar Nuevo Usuario (Alumno/Administrativo)
@@ -393,6 +434,102 @@ app.post('/api/usuarios/crear', async (req, res) => {
     }
 });
 
+//6.3 // Buscar maestro y todo su horario por Matrícula (Usando Stored Procedure)
+app.get('/api/maestros/buscar/:matricula', async (req, res) => {
+    try {
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión");
+
+        const { matricula } = req.params;
+
+        // 1. Buscamos los datos principales del maestro (AGREGAMOS LA COLUMNA "Foto")
+        const maestroResult = await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .query(`
+                SELECT idMaestro, Nombre, ApellidoPaterno, ApellidoMaterno, Correo, Sexo, Foto 
+                FROM Maestros 
+                WHERE Matricula = @matricula AND Activo = 1
+            `);
+        
+        if (maestroResult.recordset.length === 0) {
+            return res.status(404).json({ message: "No encontrado" }); 
+        }
+
+        const maestro = maestroResult.recordset[0];
+
+        // --- CONVERSIÓN DE FOTO ---
+        // SQL Server guarda la foto como un Buffer (binario). React necesita un texto Base64.
+        let fotoBase64 = null;
+        if (maestro.Foto) {
+            fotoBase64 = `data:image/jpeg;base64,${maestro.Foto.toString('base64')}`;
+        }
+
+        // 2. Ejecutamos tu nuevo Procedimiento Almacenado para traer el horario
+        const materiasResult = await pool.request()
+            .input('matricula', sql.VarChar, matricula)
+            .execute('BuscarHorarioMaestroWeb'); // <-- ¡Aquí llamamos al SP!
+
+        // Devolvemos el paquete completo a React
+        res.json({
+            maestro: {
+                ...maestro,
+                Foto: fotoBase64 // Sobrescribimos la foto original con la versión convertida
+            },
+            materias: materiasResult.recordset
+        });
+
+    } catch (error: any) {
+        res.status(500).send(error.message);
+    }
+});
+
+// Registrar Nuevo Usuario (Alumno/Administrativo)
+app.post('/api/usuarios/crear', async (req, res) => {
+    try {
+        const {
+            matricula, nombres, apellidoPaterno, apellidoMaterno,
+            grado, grupo, carrera, sexo, observaciones, fotoBase64
+        } = req.body;
+
+        const pool = await getConnection();
+        if (!pool) throw new Error("Sin conexión a BD");
+
+        // 1. Convertir la foto de Base64 a Buffer (Binario para SQL)
+        let fotoBuffer = null;
+        if (fotoBase64) {
+            const base64Data = fotoBase64.split(';base64,').pop();
+            fotoBuffer = Buffer.from(base64Data, 'base64');
+        }
+
+        // 2. Mapear el Sexo a tinyint (Como lo definiste en tu tabla Usuarios)
+        let sexoId = 1; // Default: Masculino
+        if (sexo === 'F') sexoId = 2; // Femenino
+        if (sexo === 'NB') sexoId = 3; // No Binario
+
+        // 3. Ejecutar el Stored Procedure
+        await pool.request()
+            .input('autoridad', sql.VarChar, 'A') // 'A' de Alumno (Cámbialo si manejas otros roles en esta vista)
+            .input('usuario', sql.VarChar, matricula)
+            .input('puesto', sql.VarChar, carrera) // Usamos 'Puesto' para guardar la carrera según tu lógica
+            .input('ubicacion', sql.VarChar, grupo) // Guardamos el grupo en 'Ubicacion'
+            .input('nombre', sql.VarChar, nombres)
+            .input('apellidopaterno', sql.VarChar, apellidoPaterno)
+            .input('apellidomaterno', sql.VarChar, apellidoMaterno || '')
+            .input('foto', sql.VarBinary, fotoBuffer)
+            .input('sexo', sql.TinyInt, sexoId)
+            .input('activo', sql.TinyInt, 1) // 1 = Activo
+            .input('status', sql.VarChar, 'ACTIVO')
+            .input('fechacreacion', sql.DateTime, new Date()) // El SP lo pide en la firma, aunque lo reescriba internamente
+            .input('observaciones', sql.VarChar, observaciones || '')
+            .execute('RegistrarUsuarios');
+
+        res.status(200).json({ mensaje: 'Usuario registrado exitosamente' });
+
+    } catch (error: any) {
+        console.error("Error al guardar usuario:", error);
+        res.status(500).send(error.message);
+    }
+});
 
 // 7. Obtener lista de Materias Activas sin repetir
 app.get('/api/materias', async (req, res) => {
@@ -493,7 +630,7 @@ app.get('/api/maestros/carga', async (req, res) => {
     }
 });
 
-// 9. Agregar materia (Inserción en cadena CORREGIDA)
+// 9. Agregar materia (Ahora usando el Stored Procedure 'RegistrarHorarioWeb')
 app.post('/api/maestros/agregar-materia', async (req, res) => {
     try {
         const { idMaestro, materia, horaInicio, horaFin, dias, idarea, semestre, grupo, carrera, salon } = req.body;
@@ -505,70 +642,28 @@ app.post('/api/maestros/agregar-materia', async (req, res) => {
         const jueves = dias.includes('J') ? 1 : 0;
         const viernes = dias.includes('V') ? 1 : 0;
 
+        // Formateo de horas para SQL Server
         const horaInicioStr = `1900-01-01 ${horaInicio}:00.000`;
         const horaFinStr = `1900-01-01 ${horaFin}:00.000`;
 
-        // PASO 1: Lógica inteligente para buscar/crear el Grupo y luego insertar Asignatura
-        const resultAsig = await pool.request()
+        await pool.request()
             .input('idMaestro', sql.Int, idMaestro)
             .input('materia', sql.VarChar, materia)
-            .input('semestre', sql.Int, parseInt(semestre))
+            .input('hora_inicio', sql.VarChar, horaInicioStr)
+            .input('hora_fin', sql.VarChar, horaFinStr)
             .input('grupo', sql.Char, grupo)
-            .input('carrera', sql.VarChar, carrera)
-            .input('salon', sql.VarChar, salon)
-            .query(`
-                DECLARE @idgrupo INT;
-
-                -- Buscamos el grupo por semestre y letra
-                SELECT @idgrupo = idgrupo FROM Grupos WHERE Grupo = @grupo AND Semestre = @semestre;
-
-                -- Si no existe, lo creamos
-                IF @idgrupo IS NULL
-                BEGIN
-                    INSERT INTO Grupos (Grupo, Salon, Carrera, Semestre, Activo)
-                    VALUES (@grupo, @salon, @carrera, @semestre, 1);
-                    SET @idgrupo = SCOPE_IDENTITY();
-                END
-                ELSE
-                BEGIN
-                    -- Si existe, actualizamos sus datos por si cambiaron de salón
-                    UPDATE Grupos SET Salon = @salon, Carrera = @carrera, Activo = 1 WHERE idgrupo = @idgrupo;
-                END
-
-                -- Ahora SÍ insertamos la Asignatura con el ID de grupo correcto
-                INSERT INTO Asignaturas (idMaestro, Materia, activo, idgrupo)
-                OUTPUT INSERTED.idasignatura
-                VALUES (@idMaestro, @materia, 1, @idgrupo);
-            `);
-        const idAsignatura = resultAsig.recordset[0].idasignatura;
-
-        // PASO 2: Insertar Periodo
-        const resultPer = await pool.request()
-            .input('horaInicio', sql.VarChar, horaInicioStr)
-            .input('horaFin', sql.VarChar, horaFinStr)
+            .input('semestre', sql.Int, parseInt(semestre))
             .input('lunes', sql.TinyInt, lunes)
             .input('martes', sql.TinyInt, martes)
             .input('miercoles', sql.TinyInt, miercoles)
             .input('jueves', sql.TinyInt, jueves)
             .input('viernes', sql.TinyInt, viernes)
-            .query(`
-                INSERT INTO Periodos (hora_inicio, hora_fin, lunes, martes, miercoles, jueves, viernes, activo)
-                OUTPUT INSERTED.idperiodo
-                VALUES (@horaInicio, @horaFin, @lunes, @martes, @miercoles, @jueves, @viernes, 1);
-            `);
-        const idPeriodo = resultPer.recordset[0].idperiodo;
-
-        // PASO 3: Unirlos en la tabla Horarios
-        await pool.request()
-            .input('idasignatura', sql.Int, idAsignatura)
-            .input('idperiodo', sql.Int, idPeriodo)
             .input('idarea', sql.Int, parseInt(idarea) || 1)
-            .query(`
-                INSERT INTO Horarios (idasignatura, idperiodo, idArea, activo)
-                VALUES (@idasignatura, @idperiodo, @idarea, 1);
-            `);
+            .input('salon', sql.VarChar, salon)
+            .input('carrera', sql.VarChar, carrera)
+            .execute('RegistrarHorarioWeb'); // Llamada al nuevo procedure
 
-        res.json({ mensaje: "Materia guardada correctamente" });
+        res.json({ mensaje: "Materia guardada correctamente y optimizada" });
     } catch (error: any) {
         console.error(error);
         res.status(500).send(error.message);
