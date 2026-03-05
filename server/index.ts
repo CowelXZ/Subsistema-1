@@ -23,21 +23,19 @@ app.get('/api/test', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
+// 2. Obtener lista de Carreras (VERSIÓN CORRECTA)
 app.get('/api/carreras', async (req, res) => {
     try {
         const pool = await getConnection();
-        if (!pool) throw new Error("No hay conexión");
+        if (!pool) throw new Error("Sin conexión a BD");
 
-        // Usamos DISTINCT para que no nos traiga 20 veces la misma carrera
-        const result = await pool.request().query(`
-            SELECT DISTINCT Carrera 
-            FROM Grupos 
-            WHERE Activo = 1 AND Carrera IS NOT NULL 
-            ORDER BY Carrera ASC
-        `);
+        // Vamos a la tabla correcta
+        const result = await pool.request().query('SELECT idCarrera, NombreCarrera, Abreviatura FROM Carreras WHERE Activo = 1');
 
         res.json(result.recordset);
     } catch (error: any) {
+        console.error("Error en carreras:", error);
         res.status(500).send(error.message);
     }
 });
@@ -59,29 +57,7 @@ app.get('/api/areas', async (req, res) => {
 
 // 3. Buscar Usuario por Código (Usando SP)
 
-app.get('/api/usuarios/:codigo', async (req, res) => {
-    try {
-        const { codigo } = req.params;
-        const pool = await getConnection();
 
-        if (!pool) throw new Error("Sin conexión a BD");
-
-        const result = await pool.request().query(`
-            SELECT 
-                ROW_NUMBER() OVER (ORDER BY Carrera) AS idCarrera,
-                Carrera AS NombreCarrera
-            FROM (
-                SELECT DISTINCT Carrera
-                FROM Grupos
-                WHERE Activo = 1 AND Carrera IS NOT NULL
-            ) AS CarrerasUnicas
-        `);
-
-        res.json(result.recordset);
-    } catch (error: any) {
-        res.status(500).send(error.message);
-    }
-});
 // 4. NUEVO: Buscar Horario por ID y Fecha Actual
 app.get('/api/horario/:idUsuario', async (req, res) => {
     try {
