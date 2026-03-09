@@ -25,13 +25,23 @@ app.get('/api/test', async (req, res) => {
 });
 
 // 2. Obtener lista de Carreras (VERSIÓN CORRECTA)
+// 2. Obtener lista de Carreras (Desde Grupos con DISTINCT)
 app.get('/api/carreras', async (req, res) => {
     try {
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");
 
-        // Vamos a la tabla correcta
-        const result = await pool.request().query('SELECT idCarrera, NombreCarrera, Abreviatura FROM Carreras WHERE Activo = 1');
+        const result = await pool.request().query(`
+            SELECT 
+                ROW_NUMBER() OVER (ORDER BY Carrera) AS idCarrera,
+                Carrera AS NombreCarrera,
+                Carrera AS Abreviatura
+            FROM (
+                SELECT DISTINCT Carrera
+                FROM Grupos
+                WHERE Activo = 1 AND Carrera IS NOT NULL AND Carrera != ''
+            ) AS SubConsulta
+        `);
 
         res.json(result.recordset);
     } catch (error: any) {

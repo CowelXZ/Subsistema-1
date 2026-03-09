@@ -18,7 +18,7 @@ interface Profesor {
     id: number;
     nombre: string;
     foto: string;
-    activo: boolean; 
+    activo: boolean;
     clases: Clase[];
 }
 
@@ -31,10 +31,10 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
 
     const [addingForProf, setAddingForProf] = useState<number | null>(null);
     const [editingClassId, setEditingClassId] = useState<number | null>(null);
-    
+
     const [mostrarFiltros, setMostrarFiltros] = useState(false);
-    const [filtroEstado, setFiltroEstado] = useState<'TODOS'|'ACTIVOS'|'INACTIVOS'>('TODOS');
-    const [orden, setOrden] = useState<'AZ'|'ZA'|'RECIENTES'>('AZ');
+    const [filtroEstado, setFiltroEstado] = useState<'TODOS' | 'ACTIVOS' | 'INACTIVOS'>('TODOS');
+    const [orden, setOrden] = useState<'AZ' | 'ZA' | 'RECIENTES'>('AZ');
 
     const [modalActividad, setModalActividad] = useState<{ visible: boolean, profId: number | null, paso: 1 | 2 }>({ visible: false, profId: null, paso: 1 });
 
@@ -44,7 +44,7 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
     const [listaSemestres, setListaSemestres] = useState<any[]>([]);
     const [listaLetrasGrupo, setListaLetrasGrupo] = useState<any[]>([]);
     const [listaAreas, setListaAreas] = useState<any[]>([]); // NUEVO: Estado para salones
-    
+
     const estadoInicialMateria = {
         materia: '', horaInicio: '', horaFin: '', dias: [] as string[],
         semestre: '1', grupo: 'A', carrera: '', salon: 'AULA 1', idarea: '1'
@@ -69,33 +69,36 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
     }, []);
 
     let profesoresProcesados = [...profesores];
-    
+
     if (busqueda) profesoresProcesados = profesoresProcesados.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
     if (filtroEstado === 'ACTIVOS') profesoresProcesados = profesoresProcesados.filter(p => p.activo);
     if (filtroEstado === 'INACTIVOS') profesoresProcesados = profesoresProcesados.filter(p => !p.activo);
-    
+
     profesoresProcesados.sort((a, b) => {
         if (orden === 'AZ') return a.nombre.localeCompare(b.nombre);
         if (orden === 'ZA') return b.nombre.localeCompare(a.nombre);
-        if (orden === 'RECIENTES') return b.id - a.id; 
+        if (orden === 'RECIENTES') return b.id - a.id;
         return 0;
     });
 
     const toggleExpand = (id: number) => { setExpandedProf(expandedProf === id ? null : id); cerrarFormulario(); };
     const cerrarFormulario = () => { setAddingForProf(null); setEditingClassId(null); setNuevaMateria(estadoInicialMateria); };
-    
-    // --- LÓGICA DE ACTUALIZACIÓN DUAL (ID ÁREA + NOMBRE DEL SALÓN) ---
-    const handleMateriaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { 
+
+    const handleMateriaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+
         if (name === 'idarea') {
             const areaSeleccionada = listaAreas.find(a => a.idArea.toString() === value);
-            setNuevaMateria(prev => ({ 
-                ...prev, 
-                idarea: value, 
-                salon: areaSeleccionada ? areaSeleccionada.Observaciones : '' 
+            setNuevaMateria(prev => ({
+                ...prev,
+                idarea: value,
+                salon: areaSeleccionada ? areaSeleccionada.Observaciones : ''
             }));
+        } else if (name === 'materia') {
+            const valorSinNumeros = value.replace(/[0-9]/g, '');
+            setNuevaMateria(prev => ({ ...prev, [name]: valorSinNumeros }));
         } else {
-            setNuevaMateria(prev => ({ ...prev, [name]: value })); 
+            setNuevaMateria(prev => ({ ...prev, [name]: value }));
         }
     };
 
@@ -103,21 +106,21 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
 
     const iniciarEdicion = (profId: number, clase: Clase) => {
         setAddingForProf(profId); setEditingClassId(clase.id);
-        
+
         // Mapeo inverso: Buscar el ID del área basándonos en el nombre del salón guardado
         const areaMatch = listaAreas.find(a => a.Observaciones === clase.salon);
         const areaId = areaMatch ? areaMatch.idArea.toString() : '1';
 
         setNuevaMateria({
             materia: clase.materia, horaInicio: clase.horaInicio, horaFin: clase.horaFin, dias: clase.dias,
-            carrera: clase.carrera === 'N/A' ? '' : clase.carrera, 
+            carrera: clase.carrera === 'N/A' ? '' : clase.carrera,
             salon: clase.salon === 'N/A' ? 'AULA 1' : clase.salon,
-            semestre: String(clase.semestre), grupo: clase.grupo === '-' ? 'A' : clase.grupo, 
+            semestre: String(clase.semestre), grupo: clase.grupo === '-' ? 'A' : clase.grupo,
             idarea: areaId // Pasamos el ID calculado
         });
     };
 
-const guardarNuevaMateria = async (profId: number) => {
+    const guardarNuevaMateria = async (profId: number) => {
         let errores: string[] = [];
 
         // 1. Validaciones individuales heredadas de RegistroMaestros
@@ -145,28 +148,28 @@ const guardarNuevaMateria = async (profId: number) => {
         // --- Si todo está correcto, hacemos el guardado/edición ---
         try {
             const url = editingClassId ? `http://localhost:3000/api/maestros/editar-materia/${editingClassId}` : 'http://localhost:3000/api/maestros/agregar-materia';
-            const res = await fetch(url, { 
-                method: editingClassId ? 'PUT' : 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ ...nuevaMateria, idMaestro: profId }) 
+            const res = await fetch(url, {
+                method: editingClassId ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...nuevaMateria, idMaestro: profId })
             });
-            
-            if (res.ok) { 
-                await cargarCargaAcademica(); 
-                cerrarFormulario(); 
+
+            if (res.ok) {
+                await cargarCargaAcademica();
+                cerrarFormulario();
             } else {
                 alert("❌ Error al comunicarse con el servidor.");
             }
-        } catch (error) { 
-            console.error("Error:", error); 
+        } catch (error) {
+            console.error("Error:", error);
         }
     };
 
     const eliminarMateria = async (idClase: number) => {
-        if(!window.confirm("¿Seguro que deseas eliminar esta materia?")) return;
+        if (!window.confirm("¿Seguro que deseas eliminar esta materia?")) return;
         try {
             const res = await fetch(`http://localhost:3000/api/maestros/eliminar-materia/${idClase}`, { method: 'DELETE' });
-            if(res.ok) await cargarCargaAcademica();
+            if (res.ok) await cargarCargaAcademica();
         } catch (error) { console.error("Error:", error); }
     };
 
@@ -185,10 +188,17 @@ const guardarNuevaMateria = async (profId: number) => {
             <Header titulo="Administracion de Maestros" onBack={onBack} />
 
             <main className="dashboard-grid single-column">
-                
+
                 <section className="card search-bar-card" style={{ gap: '15px' }}>
                     <div className="search-wrapper full-width">
-                        <input type="text" placeholder="Buscar profesor por nombre..." className="input-field search-input" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+                        <input
+                            type="text"
+                            placeholder="Buscar profesor por nombre..."
+                            className="input-field search-input"
+                            value={busqueda}
+                            /* NUEVO: Filtro para evitar números en la búsqueda */
+                            onChange={(e) => setBusqueda(e.target.value.replace(/[0-9]/g, ''))}
+                        />
                         <button className="search-btn"><span className="material-icons">search</span></button>
                     </div>
 
@@ -196,20 +206,20 @@ const guardarNuevaMateria = async (profId: number) => {
                         <button className="btn-filter" onClick={() => setMostrarFiltros(!mostrarFiltros)}>
                             <span className="material-icons">filter_list</span>
                         </button>
-                        
+
                         {mostrarFiltros && (
                             <div className="filter-dropdown animate-fade-in">
                                 <div className="filter-section">
                                     <h4>Mostrar</h4>
-                                    <button className={`filter-option ${filtroEstado === 'TODOS' ? 'selected' : ''}`} onClick={() => {setFiltroEstado('TODOS'); setMostrarFiltros(false)}}>Todos</button>
-                                    <button className={`filter-option ${filtroEstado === 'ACTIVOS' ? 'selected' : ''}`} onClick={() => {setFiltroEstado('ACTIVOS'); setMostrarFiltros(false)}}>Solo Activos</button>
-                                    <button className={`filter-option ${filtroEstado === 'INACTIVOS' ? 'selected' : ''}`} onClick={() => {setFiltroEstado('INACTIVOS'); setMostrarFiltros(false)}}>Solo Inactivos</button>
+                                    <button className={`filter-option ${filtroEstado === 'TODOS' ? 'selected' : ''}`} onClick={() => { setFiltroEstado('TODOS'); setMostrarFiltros(false) }}>Todos</button>
+                                    <button className={`filter-option ${filtroEstado === 'ACTIVOS' ? 'selected' : ''}`} onClick={() => { setFiltroEstado('ACTIVOS'); setMostrarFiltros(false) }}>Solo Activos</button>
+                                    <button className={`filter-option ${filtroEstado === 'INACTIVOS' ? 'selected' : ''}`} onClick={() => { setFiltroEstado('INACTIVOS'); setMostrarFiltros(false) }}>Solo Inactivos</button>
                                 </div>
                                 <div className="filter-section" style={{ borderBottom: 'none' }}>
                                     <h4>Ordenar por</h4>
-                                    <button className={`filter-option ${orden === 'AZ' ? 'selected' : ''}`} onClick={() => {setOrden('AZ'); setMostrarFiltros(false)}}>Alfabético (A-Z)</button>
-                                    <button className={`filter-option ${orden === 'ZA' ? 'selected' : ''}`} onClick={() => {setOrden('ZA'); setMostrarFiltros(false)}}>Inverso (Z-A)</button>
-                                    <button className={`filter-option ${orden === 'RECIENTES' ? 'selected' : ''}`} onClick={() => {setOrden('RECIENTES'); setMostrarFiltros(false)}}>Más Recientes</button>
+                                    <button className={`filter-option ${orden === 'AZ' ? 'selected' : ''}`} onClick={() => { setOrden('AZ'); setMostrarFiltros(false) }}>Alfabético (A-Z)</button>
+                                    <button className={`filter-option ${orden === 'ZA' ? 'selected' : ''}`} onClick={() => { setOrden('ZA'); setMostrarFiltros(false) }}>Inverso (Z-A)</button>
+                                    <button className={`filter-option ${orden === 'RECIENTES' ? 'selected' : ''}`} onClick={() => { setOrden('RECIENTES'); setMostrarFiltros(false) }}>Más Recientes</button>
                                 </div>
                             </div>
                         )}
@@ -228,7 +238,7 @@ const guardarNuevaMateria = async (profId: number) => {
                                     </div>
                                 </div>
                                 <div className="prof-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                    <button 
+                                    <button
                                         className={`status-badge ${prof.activo ? 'active' : 'inactive'}`}
                                         onClick={(e) => { e.stopPropagation(); setModalActividad({ visible: true, profId: prof.id, paso: 1 }); }}
                                     >
@@ -251,9 +261,9 @@ const guardarNuevaMateria = async (profId: number) => {
                                                 {prof.clases.map(clase => (
                                                     <tr key={clase.id} className={editingClassId === clase.id ? 'editing-row' : ''}>
                                                         <td className="fw-bold">
-                                                            {clase.materia}<br/>
+                                                            {clase.materia}<br />
                                                             <small style={{ color: '#888', fontWeight: 'normal', fontSize: '0.85rem', display: 'block', marginTop: '3px' }}>
-                                                                {clase.carrera} - {clase.salon} <span style={{color: '#ddd', margin: '0 5px'}}>|</span> {clase.semestre}° Semestre, Grupo {clase.grupo}
+                                                                {clase.carrera} - {clase.salon} <span style={{ color: '#ddd', margin: '0 5px' }}>|</span> {clase.semestre}° Semestre, Grupo {clase.grupo}
                                                             </small>
                                                         </td>
                                                         <td>{clase.horaInicio} - {clase.horaFin}</td>
@@ -288,12 +298,12 @@ const guardarNuevaMateria = async (profId: number) => {
                                             <div className="user-form">
                                                 <div className="form-group">
                                                     <label>Materia</label>
-                                                    <input 
+                                                    <input
                                                         type="text"
                                                         list={`opciones-materias-${prof.id}`}
-                                                        name="materia" 
-                                                        className="input-field" 
-                                                        value={nuevaMateria.materia} 
+                                                        name="materia"
+                                                        className="input-field"
+                                                        value={nuevaMateria.materia}
                                                         onChange={handleMateriaChange}
                                                         placeholder="Seleccione o escriba una materia nueva..."
                                                         autoComplete="off"
@@ -304,14 +314,14 @@ const guardarNuevaMateria = async (profId: number) => {
                                                         ))}
                                                     </datalist>
                                                 </div>
-                                                
+
                                                 <div className="form-row" style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-                                                    <div className="form-group" style={{ flex: 1 }}>
+                                                    <div className="form-group">
                                                         <label>Carrera</label>
                                                         <select name="carrera" className="input-field" value={nuevaMateria.carrera} onChange={handleMateriaChange}>
                                                             <option value="">Seleccione...</option>
                                                             {listaCarreras.map((c, index) => (
-                                                                <option key={index} value={c.Carrera}>{c.Carrera}</option>
+                                                                <option key={index} value={c.NombreCarrera}>{c.NombreCarrera}</option>
                                                             ))}
                                                         </select>
                                                     </div>
@@ -363,9 +373,9 @@ const guardarNuevaMateria = async (profId: number) => {
                                                     <label className="label-centered">Días de Clase</label>
                                                     <div className="days-selector">
                                                         {['L', 'M', 'MM', 'J', 'V'].map(dia => (
-                                                            <button 
-                                                                key={dia} type="button" 
-                                                                className={`btn-day ${nuevaMateria.dias.includes(dia) ? 'active' : ''}`} 
+                                                            <button
+                                                                key={dia} type="button"
+                                                                className={`btn-day ${nuevaMateria.dias.includes(dia) ? 'active' : ''}`}
                                                                 onClick={() => toggleDia(dia)}
                                                             >
                                                                 {dia === 'MM' ? 'Mi' : dia}
@@ -373,16 +383,16 @@ const guardarNuevaMateria = async (profId: number) => {
                                                         ))}
                                                     </div>
                                                 </div>
-                                                
+
                                                 <button type="button" onClick={() => guardarNuevaMateria(prof.id)} className="btn-add-hour">
-                                                    <span className="material-icons">{editingClassId ? 'save' : 'add_circle'}</span> 
+                                                    <span className="material-icons">{editingClassId ? 'save' : 'add_circle'}</span>
                                                     {editingClassId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIA'}
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="add-subject-row" style={{ marginTop: '15px' }}>
-                                            <button className="btn-outline-primary" onClick={() => {cerrarFormulario(); setAddingForProf(prof.id)}}>
+                                            <button className="btn-outline-primary" onClick={() => { cerrarFormulario(); setAddingForProf(prof.id) }}>
                                                 <span className="material-icons">add_circle</span> Asignar Nueva Materia
                                             </button>
                                         </div>

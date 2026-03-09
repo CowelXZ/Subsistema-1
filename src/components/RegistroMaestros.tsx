@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import './RegistroMaestros.css';
 import { Header } from './common/Header';
 import Webcam from 'react-webcam';
+import { Modal } from './common/Modal';
 
 interface Props {
     onBack: () => void;
@@ -26,10 +27,21 @@ interface Asignatura {
 export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
     // --- ESTADO: Listas desde BD ---
     const [listaCarreras, setListaCarreras] = useState<any[]>([]);
-    const [listaMaterias, setListaMaterias] = useState<any[]>([]); 
+    const [listaMaterias, setListaMaterias] = useState<any[]>([]);
     const [listaAreas, setListaAreas] = useState<any[]>([]);
     const [listaSemestres, setListaSemestres] = useState<any[]>([]); // Nuevo estado
     const [listaLetrasGrupo, setListaLetrasGrupo] = useState<any[]>([]);
+
+    // --- ESTADO: Alertas (Modal) ---
+    const [alertModal, setAlertModal] = useState({
+        isOpen: false, title: '', message: '', type: 'success' as 'success' | 'warning' | 'error'
+    });
+
+    const showAlert = (title: string, msg: string, type: 'success' | 'warning' | 'error') => {
+        setAlertModal({ isOpen: true, title, message: msg, type });
+    };
+
+    const closeAlert = () => setAlertModal(prev => ({ ...prev, isOpen: false }));
 
     // 1. AGREGA ESTA FUNCIÓN AQUÍ
     const cargarMaterias = () => {
@@ -40,22 +52,22 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
     };
 
     const cargarSemestres = () => {
-    fetch('http://localhost:3000/api/semestres')
-        .then(res => res.json())
-        .then(data => setListaSemestres(data))
-        .catch(err => console.error("Error cargando semestres:", err));
+        fetch('http://localhost:3000/api/semestres')
+            .then(res => res.json())
+            .then(data => setListaSemestres(data))
+            .catch(err => console.error("Error cargando semestres:", err));
     };
 
     const cargarListasGrupos = () => {
-    // Cargamos Semestres
-    fetch('http://localhost:3000/api/semestres')
-        .then(res => res.json())
-        .then(data => setListaSemestres(data));
+        // Cargamos Semestres
+        fetch('http://localhost:3000/api/semestres')
+            .then(res => res.json())
+            .then(data => setListaSemestres(data));
 
-    // Cargamos Letras (A, B, C...)
-    fetch('http://localhost:3000/api/grupos-letras')
-        .then(res => res.json())
-        .then(data => setListaLetrasGrupo(data));
+        // Cargamos Letras (A, B, C...)
+        fetch('http://localhost:3000/api/grupos-letras')
+            .then(res => res.json())
+            .then(data => setListaLetrasGrupo(data));
     };
 
     useEffect(() => {
@@ -74,7 +86,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
             .then(res => res.json())
             .then(data => {
                 setListaAreas(data);
-                if(data.length > 0) {
+                if (data.length > 0) {
                     setNuevaMateria(prev => ({ ...prev, idarea: data[0].idArea.toString(), salon: data[0].Observaciones }));
                 }
             });
@@ -127,10 +139,10 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
         const { name, value } = e.target;
         if (name === 'idarea') {
             const areaSeleccionada = listaAreas.find(a => a.idArea.toString() === value);
-            setNuevaMateria(prev => ({ 
-                ...prev, 
-                idarea: value, 
-                salon: areaSeleccionada ? areaSeleccionada.Observaciones : '' 
+            setNuevaMateria(prev => ({
+                ...prev,
+                idarea: value,
+                salon: areaSeleccionada ? areaSeleccionada.Observaciones : ''
             }));
         } else {
             setNuevaMateria(prev => ({ ...prev, [name]: value }));
@@ -179,20 +191,19 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
         // 3. Si la "bolsa de errores" tiene algo, mostramos la alerta dinámica
         if (errores.length > 0) {
-            alert("⚠️ No se puede agregar la materia. Te falta completar:\n\n" + errores.join("\n"));
-            return; 
+            showAlert("Faltan Datos", "No se puede agregar la materia. Te falta completar:\n\n" + errores.join("\n"), "warning");
+            return;
         }
-
         // --- Si todo está correcto, se agrega al arreglo ---
         setHorario([...horario, { id: Date.now(), ...nuevaMateria }]);
-        
+
         // Limpiamos solo los campos de la materia (dejamos carrera y grupo por si agrega otra igual)
-        setNuevaMateria(prev => ({ 
-            ...prev, 
-            materia: '', 
-            horaInicio: '', 
-            horaFin: '', 
-            dias: [] 
+        setNuevaMateria(prev => ({
+            ...prev,
+            materia: '',
+            horaInicio: '',
+            horaFin: '',
+            dias: []
         }));
     };
 
@@ -240,8 +251,8 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
         // Si encontramos al menos un error, lanzamos la alerta dinámica y detenemos todo
         if (errores.length > 0) {
-            alert("⚠️ No se puede guardar el registro. Por favor revisa lo siguiente:\n\n" + errores.join("\n"));
-            return; 
+            showAlert("Datos Inválidos", "No se puede guardar el registro. Por favor revisa lo siguiente:\n\n" + errores.join("\n"), "warning");
+            return;
         }
 
         // --- Si llega hasta aquí, los datos están perfectos. Hacemos el fetch normal ---
@@ -249,7 +260,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
             const datosParaEnviar = {
                 ...teacherData,
                 fotoBase64: imgSrc,
-                horario: horario 
+                horario: horario
             };
 
             const respuesta = await fetch('http://localhost:3000/api/maestros/crear', {
@@ -264,17 +275,17 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                 setImgSrc(null);
                 setHorario([]);
                 // Reiniciamos los campos
-                setTeacherData({ 
+                setTeacherData({
                     numeroEmpleado: '', nombres: '', apellidoPaterno: '', apellidoMaterno: '',
-                    correo: '', sexo: 'M', observaciones: '' 
+                    correo: '', sexo: 'M', observaciones: ''
                 });
             } else {
                 const errorTexto = await respuesta.text();
-                alert("❌ Error al guardar: " + errorTexto);
+                showAlert("Error al guardar", errorTexto, "error"); // <--- CAMBIO
             }
         } catch (error) {
             console.error(error);
-            alert("Error de conexión con el servidor.");
+            showAlert("Error de conexión", "Error de conexión con el servidor.", "error");
         }
     };
 
@@ -285,7 +296,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
         // Validación 1: Número de Empleado (SOLO NÚMEROS)
         if (name === 'numeroEmpleado') {
             valorFiltrado = value.replace(/\D/g, ''); // Borra lo que NO sea número
-        } 
+        }
         // Validación 2: Nombres y Apellidos (SOLO LETRAS Y ESPACIOS)
         else if (name === 'nombres' || name === 'apellidoPaterno' || name === 'apellidoMaterno') {
             valorFiltrado = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); // Borra números y símbolos
@@ -302,10 +313,10 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
         try {
             const res = await fetch(`http://localhost:3000/api/maestros/buscar/${teacherData.numeroEmpleado}`);
-            
+
             if (res.ok) {
                 const data = await res.json();
-                
+
                 // 1. Llenamos los datos personales del maestro silenciosamente
                 setTeacherData(prev => ({
                     ...prev,
@@ -314,7 +325,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                     apellidoMaterno: data.maestro.ApellidoMaterno || '',
                     correo: data.maestro.Correo || '',
                     // CAMBIO AQUÍ: Usamos 'M' para que coincida con el HTML de tus radio buttons
-                    sexo: data.maestro.Sexo || 'M' 
+                    sexo: data.maestro.Sexo || 'M'
                 }));
 
                 // 2. Cargamos la foto en el cuadro negro si existe
@@ -334,7 +345,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                     if (m.viernes === 1) diasClase.push('V');
 
                     return {
-                        id: Date.now() + index, 
+                        id: Date.now() + index,
                         materia: m.materia,
                         carrera: m.carrera,
                         semestre: m.semestre,
@@ -347,7 +358,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                 });
 
                 setHorario(materiasMapeadas);
-                
+
             } else if (res.status === 404) {
                 // Si no existe, limpiamos los campos y la tabla por si había datos de una búsqueda anterior
                 setTeacherData(prev => ({
@@ -376,23 +387,23 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                             <div className="form-group">
                                 <label>Número de Empleado</label>
                                 <div style={{ position: 'relative' }}>
-                                    <input 
-                                        type="text" 
-                                        name="numeroEmpleado" 
-                                        className="input-field" 
-                                        value={teacherData.numeroEmpleado} 
+                                    <input
+                                        type="text"
+                                        name="numeroEmpleado"
+                                        className="input-field"
+                                        value={teacherData.numeroEmpleado}
                                         onChange={handleTeacherChange}
                                         onBlur={buscarMaestro} /* <-- AQUÍ SE LLAMA AL DAR CLIC AFUERA */
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
-                                                e.preventDefault(); 
+                                                e.preventDefault();
                                                 buscarMaestro(); /* <-- AQUÍ SE LLAMA AL DAR ENTER */
                                             }
                                         }}
                                     />
                                     {/* Este es el icono de la lupa que ejecuta la búsqueda al darle clic */}
-                                    <span 
-                                        className="search-icon" 
+                                    <span
+                                        className="search-icon"
                                         onClick={buscarMaestro} /* <-- AQUÍ SE LLAMA AL DAR CLIC EN LA LUPA */
                                         style={{ position: 'absolute', right: '10px', top: '10px', cursor: 'pointer' }}
                                     >
@@ -404,7 +415,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                 <label>Nombre(s)</label>
                                 <input name="nombres" type="text" className="input-field" value={teacherData.nombres} onChange={handleChange} />
                             </div>
-                            
+
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Ap. Paterno</label>
@@ -420,7 +431,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                 <label>Correo Institucional</label>
                                 <input name="correo" type="email" className="input-field" value={teacherData.correo} onChange={handleChange} />
                             </div>
-                            
+
                             <div className="form-group">
                                 <label>Sexo</label>
                                 <div className="radio-group">
@@ -438,40 +449,40 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                             <h2>Agregar Materia</h2>
                         </div>
                         <div className="user-form">
-                            
+
                             <div className="form-group">
                                 <label>Materia</label>
                                 {/* NUEVO CÓDIGO (La solución) */}
-                            <input 
-                                type="text"
-                                list="opciones-materias"
-                                name="materia" 
-                                className="input-field" 
-                                value={nuevaMateria.materia} 
-                                onChange={handleMateriaChange}
-                                placeholder="Seleccione o escriba una materia nueva..."
-                                autoComplete="off"
-                            />
-                            <datalist id="opciones-materias">
-                                {listaMaterias.map((m, index) => (
-                                    <option key={index} value={m.Materia} />
-                                ))}
-                            </datalist>
+                                <input
+                                    type="text"
+                                    list="opciones-materias"
+                                    name="materia"
+                                    className="input-field"
+                                    value={nuevaMateria.materia}
+                                    onChange={handleMateriaChange}
+                                    placeholder="Seleccione o escriba una materia nueva..."
+                                    autoComplete="off"
+                                />
+                                <datalist id="opciones-materias">
+                                    {listaMaterias.map((m, index) => (
+                                        <option key={index} value={m.Materia} />
+                                    ))}
+                                </datalist>
                             </div>
-                            
+
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Carrera</label>
-                                    <select 
-                                        name="carrera" 
-                                        className="input-field" 
-                                        value={nuevaMateria.carrera} 
+                                    <select
+                                        name="carrera"
+                                        className="input-field"
+                                        value={nuevaMateria.carrera}
                                         onChange={handleMateriaChange}
                                     >
                                         <option value="">Seleccione...</option>
                                         {listaCarreras.map((c, index) => (
-                                            // Usamos el nombre de la carrera tanto para el valor como para el texto
-                                            <option key={index} value={c.Carrera}>{c.Carrera}</option>
+                                            // CAMBIO AQUÍ: Usamos c.NombreCarrera porque así lo manda el backend ahora
+                                            <option key={index} value={c.NombreCarrera}>{c.NombreCarrera}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -508,7 +519,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                     </select>
                                 </div>
                             </div>
-                            
+
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Hora Inicio</label>
@@ -525,10 +536,10 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                 <div className="days-selector">
                                     {/* ¡Adiós al botón de Sábado! */}
                                     {['L', 'M', 'MM', 'J', 'V'].map(dia => (
-                                        <button 
-                                            key={dia} 
-                                            type="button" 
-                                            className={`btn-day ${nuevaMateria.dias.includes(dia as DiaSemana) ? 'active' : ''}`} 
+                                        <button
+                                            key={dia}
+                                            type="button"
+                                            className={`btn-day ${nuevaMateria.dias.includes(dia as DiaSemana) ? 'active' : ''}`}
                                             onClick={() => toggleDia(dia as DiaSemana)}
                                         >
                                             {dia}
@@ -569,13 +580,13 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                         {horario.map(item => (
                                             <tr key={item.id}>
                                                 <td className="fw-bold">
-                                                    {item.materia}<br/>
+                                                    {item.materia}<br />
                                                     <small>{item.carrera || 'N/A'} - {item.salon}</small>
                                                 </td>
                                                 <td>{item.semestre}° {item.grupo}</td>
                                                 <td className="text-center text-sm">
                                                     {item.horaInicio} - {item.horaFin}
-                                                    <div className="days-badge-group" style={{marginTop: '4px'}}>
+                                                    <div className="days-badge-group" style={{ marginTop: '4px' }}>
                                                         {item.dias.map(d => (
                                                             <span key={d} className="badge-day">{d}</span>
                                                         ))}
@@ -596,7 +607,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
                     {/* CÁMARA */}
                     <section className="card camera-card-compact">
-                        
+
                         <div className="card-header compact-header">
                             <h2>Fotografía</h2>
                             {/* Eliminamos el botón pequeño de aquí como lo pediste */}
@@ -608,12 +619,12 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                 {imgSrc ? (
                                     <img src={imgSrc} className="video-feed" alt="Captura de docente" />
                                 ) : (
-                                    <Webcam 
-                                        audio={false} 
-                                        ref={webcamRef} 
-                                        screenshotFormat="image/jpeg" 
-                                        className="video-feed" 
-                                        videoConstraints={{ facingMode: "user" }} 
+                                    <Webcam
+                                        audio={false}
+                                        ref={webcamRef}
+                                        screenshotFormat="image/jpeg"
+                                        className="video-feed"
+                                        videoConstraints={{ facingMode: "user" }}
                                     />
                                 )}
                             </div>
@@ -622,9 +633,9 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                             <div className="camera-actions compact-actions" style={{ marginTop: '15px' }}>
                                 <div className="action-buttons-row">
                                     {imgSrc ? (
-                                        <button 
-                                            type="button" 
-                                            className="btn-add-hour" 
+                                        <button
+                                            type="button"
+                                            className="btn-add-hour"
                                             onClick={() => setImgSrc(null)}
                                             // Agregamos fontSize para crecer la letra, y display flex para alinear el icono con el texto
                                             style={{ width: '100%', fontSize: '17px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
@@ -632,9 +643,9 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                                             <span className="material-icons">refresh</span> RETOMAR FOTO
                                         </button>
                                     ) : (
-                                        <button 
-                                            type="button" 
-                                            className="btn-add-hour" 
+                                        <button
+                                            type="button"
+                                            className="btn-add-hour"
                                             onClick={capturarFoto}
                                             style={{ width: '100%', fontSize: '17px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
                                         >
@@ -653,6 +664,19 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                     GUARDAR REGISTRO DOCENTE
                 </button>
             </footer>
+            {/* --- MODAL DE ALERTAS --- */}
+            <Modal isOpen={alertModal.isOpen} onClose={closeAlert} title={alertModal.title}>
+                <div style={{ textAlign: 'center' }}>
+                    <span className="material-icons" style={{ fontSize: '48px', marginBottom: '15px', color: alertModal.type === 'success' ? '#28a745' : alertModal.type === 'error' ? '#dc3545' : '#e67e22' }}>
+                        {alertModal.type === 'success' ? 'check_circle' : alertModal.type === 'error' ? 'error' : 'info'}
+                    </span>
+                    {/* El whiteSpace: pre-line permite que los \n se vean como saltos de línea reales */}
+                    <p style={{ whiteSpace: 'pre-line', margin: '0 0 20px 0' }}>{alertModal.message}</p>
+                    <div className="modal-actions" style={{ justifyContent: 'center' }}>
+                        <button className="btn-capture" onClick={closeAlert}>Entendido</button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
