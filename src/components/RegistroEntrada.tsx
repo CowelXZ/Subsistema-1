@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './RegistroEntrada.css';
 import { Header } from './common/Header';
+import { MenuDesplegable } from "./MenuDesplegable";
 
 interface Props {
     onNavigateToRegister: () => void;
@@ -133,7 +134,7 @@ export const RegistroEntrada: React.FC<Props> = ({
 
     return (
         <div className="main-wrapper">
-            <Header titulo="CONTROL DE ACCESO E IDENTIFICACIÓN" />
+            <Header titulo="CONTROL DE ACCESO E IDENTIFICACIÓN" rightAction={<MenuDesplegable />} />
 
             <main className="main-centered">
                 <section className="card login-card wide-card">

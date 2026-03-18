@@ -3,20 +3,16 @@ import React from 'react';
 interface HeaderProps {
     titulo: string;
     onBack?: () => void;
+    rightAction?: React.ReactNode; // <--- NUEVA PROPIEDAD OPCIONAL
 }
 
-export const Header: React.FC<HeaderProps> = ({ titulo, onBack }) => {
+export const Header: React.FC<HeaderProps> = ({ titulo, onBack, rightAction }) => {
     return (
         <header className="top-bar">
-
             {/* --- IZQUIERDA: Botón + Logo UAT --- */}
             <div className="header-left">
                 {onBack && (
-                    <button
-                        onClick={onBack}
-                        className="btn-header-back" // Clase nueva
-                        title="Volver"
-                    >
+                    <button onClick={onBack} className="btn-header-back" title="Volver">
                         <span className="material-icons">arrow_back</span>
                     </button>
                 )}
@@ -24,13 +20,20 @@ export const Header: React.FC<HeaderProps> = ({ titulo, onBack }) => {
             </div>
 
             {/* --- CENTRO: Título --- */}
-            <h1 className="header-title">{titulo}</h1>
+            <h1 className="header-title" style={{ position: 'relative', right: '60px', textAlign: 'center' }}>
+                {titulo}
+            </h1>
 
-            {/* --- DERECHA: Logo FCAT --- */}
-            <div className="header-right">
-                <img src="/img/logo-fcat.png" alt="FCAT" className="top-logo" />
+            {/* --- DERECHA: Logo FCAT + Acción Extra --- */}
+            <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <img 
+                    src="/img/logo-fcat.png" 
+                    alt="FCAT" 
+                    className="top-logo" 
+                    style={{ flexShrink: 0, height: '80px' }} /* <--- Agregamos esto */
+                />
+                {rightAction} 
             </div>
-
         </header>
     );
 };

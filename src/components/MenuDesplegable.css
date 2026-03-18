@@ -1,0 +1,376 @@
+/* =========================================
+   1. BOTÓN DEL HEADER (LAS 3 RAYITAS)
+========================================= */
+.btn-menu-trigger {
+    background: transparent;
+    border: none;
+    color: var(--uat-guinda); 
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.btn-menu-trigger:hover {
+    background: rgba(125, 20, 29, 0.1);
+}
+.btn-menu-trigger .material-icons {
+    font-size: 42px;
+}
+
+/* =========================================
+   2. FONDO OSCURO (SEGUNDO PLANO)
+========================================= */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* Negro semi-transparente */
+    z-index: 9998; 
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+}
+.menu-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* =========================================
+   3. EL PANEL LATERAL (EL CONTENEDOR PRINCIPAL)
+========================================= */
+.menu-lateral {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 320px;
+    height: 100vh;
+    background-color: #f8f9fa;
+    z-index: 9999; 
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    
+    /* Empieza fuera de la pantalla (100% a la derecha) */
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+.menu-lateral.open {
+    /* Entra a la pantalla */
+    transform: translateX(0);
+}
+
+/* =========================================
+   4. CABECERA DEL PANEL (CERRAR + TÍTULO)
+========================================= */
+.menu-lateral-header {
+    display: flex;
+    flex-direction: column; 
+    margin-bottom: 30px;
+    position: relative;
+}
+
+/* Botón de cerrar (X) */
+.btn-close-lateral {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: transparent;
+    border: none;
+    color: var(--uat-guinda); 
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+.btn-close-lateral:hover {
+    background: rgba(125, 20, 29, 0.1);
+    transform: scale(1.1);
+}
+.btn-close-lateral .material-icons {
+    font-size: 32px;
+}
+
+/* Contenedor del Título */
+.menu-lateral-title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 20px; 
+    color: var(--uat-guinda); 
+}
+.menu-lateral-title-container .title-icon {
+    font-size: 64px; 
+    margin-bottom: 10px;
+    color: var(--uat-guinda);
+}
+.menu-lateral-title-container h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.menu-lateral-title-container p {
+    margin: 5px 0 0 0;
+    font-size: 0.9rem;
+    color: #444; 
+    font-weight: 500;
+}
+
+/* =========================================
+   5. LISTA Y BOTONES DE OPCIONES
+========================================= */
+.menu-lateral-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-lateral-option {
+    width: 100%;
+    background-color: var(--uat-guinda); 
+    color: white;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+.btn-lateral-option:hover {
+    background-color: #5a0a14; 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+.btn-lateral-option .material-icons {
+    font-size: 24px;
+}
+
+/* =========================================
+   6. ESTILOS DEL CONTENIDO DEL MODAL DE CARGA
+========================================= */
+
+/* Zona punteada para arrastrar archivos */
+.upload-drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    background-color: #fafafa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+/* Efecto visual cuando un archivo está flotando sobre la zona */
+.upload-drop-zone.is-dragging {
+    background-color: #f9eef0; /* Un tono rosita/guinda ultra claro */
+    border-color: var(--uat-guinda); /* Resaltamos el borde */
+    transform: scale(1.02); /* Pequeño zoom para indicar que puede soltarlo */
+    transition: all 0.2s ease;
+}
+
+
+.upload-drop-zone:hover {
+    border-color: var(--uat-guinda);
+    background-color: #fff5f5;
+}
+
+.upload-drop-zone .upload-icon {
+    font-size: 50px;
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.upload-drop-zone p {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #444;
+}
+
+.upload-drop-zone strong {
+    color: var(--uat-guinda);
+}
+
+.upload-drop-zone small {
+    display: block;
+    margin-top: 8px;
+    color: #888;
+}
+
+/* Caja de información (Azul/Gris) */
+.upload-requirements-box {
+    background-color: #f0f7fb; /* Un azul muy suavecito, estilo alerta */
+    border-left: 4px solid #0288d1;
+    padding: 15px;
+    border-radius: 4px 8px 8px 4px;
+    margin-bottom: 25px;
+}
+
+.req-title {
+    margin: 0 0 5px 0;
+    color: #0288d1;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.req-subtitle {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* Etiquetas de las columnas (Badges) */
+.badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.req-badge {
+    background-color: white;
+    border: 1px solid #cce5ff;
+    color: #333;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Botones inferiores del modal */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.btn-cancelar {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    color: #666;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancelar:hover {
+    color: #333;
+    text-decoration: underline;
+}
+
+.btn-subir {
+    padding: 10px 20px;
+    border: none;
+    background-color: var(--uat-guinda);
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0.5; /* Está opaco porque de momento está 'disabled' */
+}
+
+/* =========================================
+   TRUCO PARA AGRANDAR SOLO ESTE MODAL
+========================================= */
+.modal-carga-wrapper .modal-container {
+    max-width: 700px !important; /* Forzamos a que sea más ancho */
+    width: 90% !important;
+}
+
+
+/* =========================================
+   CAJA DE INFORMACIÓN COLOR NARANJA
+========================================= */
+.upload-requirements-box {
+    background-color: #fff7ed; /* Fondo naranja muy suavecito */
+    border-left: 4px solid var(--orange); /* La línea gruesa es de tu naranja */
+    padding: 15px;
+    border-radius: 4px 8px 8px 4px;
+    margin-bottom: 25px;
+}
+
+.req-title {
+    margin: 0 0 5px 0;
+    color: var(--orange); /* El título usa tu color naranja */
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.req-subtitle {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* =========================================
+   BOTÓN DE DESCARGAR PLANTILLA (REDISEÑO)
+========================================= */
+
+/* Contenedor para alinear el subtítulo y el botón */
+.requirements-subtitle-container {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    gap: 15px; 
+    margin-bottom: 15px; /* Un poco más de espacio hacia abajo */
+}
+
+.requirements-subtitle-container .req-subtitle {
+    margin: 0; 
+    flex: 1; 
+}
+
+/* El nuevo botón (Más grande, con borde y color institucional) */
+.btn-descargar-plantilla {
+    background-color: white;
+    border: 2px solid var(--uat-guinda); /* Usamos tu color principal */
+    color: var(--uat-guinda); 
+    font-weight: bold;
+    cursor: pointer;
+    display: flex; 
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem; /* Letra más grande */
+    padding: 8px 16px; /* Botón más ancho y alto */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra sutil para que despegue del fondo */
+    transition: all 0.3s ease;
+}
+
+/* Efecto al pasar el mouse (Se rellena de color) */
+.btn-descargar-plantilla:hover {
+    background-color: var(--uat-guinda); 
+    color: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* La sombra crece */
+    transform: translateY(-1px); /* Pequeño efecto 3D hacia arriba */
+}
+
+/* Ajuste del icono para que vaya acorde al nuevo tamaño */
+.btn-descargar-plantilla .material-icons {
+    font-size: 1.3rem;
+}

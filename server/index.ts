@@ -2,12 +2,20 @@ import express from 'express';
 import cors from 'cors';
 // CORRECCIÓN 1: Agregamos .js al final (necesario para ESM/Vite)
 import { getConnection, sql } from './database.js';
+import rutasCargaAlumnos from './CargaAlumnosCSV.js';
+import rutasCargaMaestros from './CargaMaestrosCSV.js';
+import rutasCargaMaterias from './CargaMateriasCSV.js';
+import rutasCargaHorarios from './CargaHorariosCSV.js';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+app.use('/api/csv/alumnos', rutasCargaAlumnos);
+app.use('/api/csv/maestros', rutasCargaMaestros);
+app.use('/api/csv/materias', rutasCargaMaterias);
+app.use('/api/csv/horarios', rutasCargaHorarios);
 // --- RUTAS (ENDPOINTS) ---
 
 // 1. Prueba de conexión
