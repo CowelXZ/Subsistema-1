@@ -2,17 +2,17 @@ import React from 'react';
 import './RegistroUsuario.css';
 import { Header } from '../common/Header';
 import { Modal } from '../common/Modal';
-import { CameraWidget } from '../common/CameraWidget'; // <--- El Widget Nuevo
-import { useRegistroUsuario } from './useRegistroUsuario'; // <--- El Hook Nuevo
-
+import { CameraWidget } from '../common/CameraWidget'; 
+import { useRegistroUsuario } from './useRegistroUsuario'; 
 
 interface Props {
     onBack: () => void;
+    initialMatricula?: string | null; // <--- NUEVA PROP (OPCIONAL)
 }
 
-export const RegistroUsuario: React.FC<Props> = ({ onBack }) => {
-    // 1. Instanciamos la lógica (El Hook hace todo el trabajo sucio)
-    const logic = useRegistroUsuario();
+export const RegistroUsuario: React.FC<Props> = ({ onBack, initialMatricula }) => {
+    // Le pasamos la matrícula al hook
+    const logic = useRegistroUsuario(initialMatricula);
 
     return (
         <div className="main-wrapper">

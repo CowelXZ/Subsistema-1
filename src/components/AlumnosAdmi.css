@@ -1,0 +1,172 @@
+/* --- TARJETA DEL GRUPO (ACCORDION) --- */
+.group-card {
+    padding: 0; 
+    overflow: hidden; 
+    transition: all 0.3s ease; 
+    margin-bottom: 20px;
+}
+
+.group-header {
+    background-color: #fff; 
+    padding: 20px 25px; 
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+}
+
+.group-header:hover { 
+    background-color: #fcfcfc; 
+}
+
+.group-info h3 { 
+    margin: 0; 
+    color: #000; 
+    font-size: 1.4rem; 
+    font-weight: 800; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.group-body { 
+    padding: 10px 25px 25px 25px; 
+    background-color: #fff; 
+}
+
+/* --- TABLA DE ALUMNOS --- */
+.alumnos-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 10px; 
+}
+
+.alumnos-table th {
+    text-align: left; 
+    color: var(--uat-guinda); /* Color Guinda para las cabeceras */
+    font-size: 0.75rem;
+    text-transform: uppercase; 
+    font-weight: 800;
+    padding-bottom: 15px; 
+    border-bottom: 2px solid #eee;
+    letter-spacing: 0.5px;
+}
+
+.alumnos-table td {
+    padding: 16px 5px; 
+    border-bottom: 1px solid #f9f9f9; 
+    vertical-align: middle; 
+    font-size: 0.95rem;
+}
+
+.matricula-text {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Modificadores de botones para centrado en tabla */
+.justify-center {
+    justify-content: center;
+}
+
+/* --- NUEVO: Píldora de contador --- */
+.count-badge {
+    background-color: #f1f3f5;
+    color: #6c757d;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-left: 15px;
+    font-weight: 600;
+    vertical-align: middle;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* --- NUEVO: Scroll interno para tablas grandes --- */
+.table-responsive {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-top: 10px;
+    border-radius: 8px;
+    /* Un pequeño borde sutil para enmarcar la tabla */
+    border: 1px solid #f0f0f0; 
+}
+
+/* Hace que los títulos de la tabla no se muevan al scrollear hacia abajo */
+.alumnos-table th {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+    /* Ajustamos el borde inferior para que baje con el sticky */
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); 
+    border-bottom: none;
+}
+
+/* --- NUEVO: Estado vacío más bonito --- */
+.empty-state-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    color: #a0aec0;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #e2e8f0;
+    margin-bottom: 15px;
+}
+.empty-state-group .material-icons {
+    font-size: 48px;
+    margin-bottom: 10px;
+    color: #cbd5e1;
+}
+
+/* --- Botón Inferior --- */
+.group-footer-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+/* --- MENÚ DE FILTRO Y ORDENAMIENTO --- */
+.filter-wrapper { position: relative; }
+.btn-filter {
+    background: white; border: 1px solid #ddd; border-radius: 8px;
+    padding: 10px 14px; cursor: pointer; display: flex;
+    align-items: center; color: #555; transition: background 0.2s;
+}
+.btn-filter:hover { background: #f9f9f9; }
+
+.filter-dropdown {
+    position: absolute; top: 110%; right: 0; background: white;
+    border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 250px; z-index: 100; border: 1px solid #eee; overflow: hidden;
+}
+
+.filter-section {
+    padding: 12px 15px; border-bottom: 1px solid #eee;
+}
+.filter-section h4 { 
+    margin: 0 0 10px 0; font-size: 0.85rem; color: #888; text-transform: uppercase; 
+}
+
+/* Opciones de texto (Ordenar) */
+.filter-option {
+    display: block; width: 100%; text-align: left; padding: 8px 10px;
+    background: none; border: none; border-radius: 4px; cursor: pointer;
+    font-size: 0.95rem; color: #333; transition: background 0.2s;
+}
+.filter-option:hover { background: #f4f4f4; }
+.filter-option.selected { 
+    background: #fff5f5; color: var(--uat-guinda); font-weight: bold; 
+}
+
+/* Opciones de Checkbox (Filtrar) */
+.filter-checkbox {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    cursor: pointer; font-size: 0.95rem; color: #444;
+}
+.filter-checkbox:last-child { margin-bottom: 0; }
+.filter-checkbox input[type="checkbox"] {
+    width: 16px; height: 16px; cursor: pointer; accent-color: var(--uat-guinda);
+}

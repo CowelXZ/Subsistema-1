@@ -14,7 +14,8 @@ export interface UserData {
     observaciones: string;
 }
 
-export const useRegistroUsuario = () => {
+// NUEVO: Le decimos que reciba la matrícula opcionalmente
+export const useRegistroUsuario = (initialMatricula?: string | null) => {
     // --- ESTADOS ---
     const [listaCarreras, setListaCarreras] = useState<any[]>([]);
     const [formData, setFormData] = useState<UserData>({
@@ -41,6 +42,15 @@ export const useRegistroUsuario = () => {
             .catch(err => console.error("Error cargando carreras:", err));
     }, []);
 
+    // --- NUEVO: EFECTO DE AUTO-BÚSQUEDA ---
+    // Si entramos a esta pantalla e initialMatricula tiene algo, ejecuta esto automáticamente:
+    useEffect(() => {
+        if (initialMatricula) {
+            setFormData(prev => ({ ...prev, matricula: initialMatricula }));
+            buscarPorMatricula(initialMatricula); // Dispara la búsqueda al instante
+        }
+    }, [initialMatricula]);
+
     // --- FUNCIONES AUXILIARES ---
     // --- MANEJADOR DE CAMBIOS CON FILTROS EN TIEMPO REAL ---
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -49,19 +59,16 @@ export const useRegistroUsuario = () => {
 
         // 1. Filtro para Nombres y Apellidos: SOLO LETRAS Y ESPACIOS
         if (name === 'nombres' || name === 'apellidoPaterno' || name === 'apellidoMaterno') {
-            // La expresión /[^...]/g busca todo lo que NO sea letra, acento o espacio y lo elimina ('')
             newValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
         }
 
         // 2. Filtro para Grado (Semestre): SOLO NÚMEROS
         if (name === 'grado') {
-            // Elimina cualquier cosa que NO sea un dígito del 0 al 9
             newValue = value.replace(/[^0-9]/g, '');
         }
 
         // 3. Filtro para Grupo: SOLO UNA LETRA (y la hace mayúscula automáticamente)
         if (name === 'grupo') {
-            // Elimina lo que no sea letra, lo pasa a mayúscula y corta si intentas escribir más de 1 caracter
             newValue = value.replace(/[^a-zA-Z]/g, '').toUpperCase().substring(0, 1);
         }
 
@@ -84,12 +91,16 @@ export const useRegistroUsuario = () => {
     const limpiarFoto = () => setImgSrc(null);
 
     // --- LÓGICA DE NEGOCIO ---
-    const buscarPorMatricula = async () => {
-        if (!formData.matricula) return;
+    // ACTUALIZADO: buscarPorMatricula ahora acepta parámetros
+    const buscarPorMatricula = async (matriculaOverride?: string | any) => {
+        // Usa la matrícula enviada directamente (desde el click) o lee la del input
+        const targetMatricula = typeof matriculaOverride === 'string' ? matriculaOverride : formData.matricula;
+        
+        if (!targetMatricula) return;
+        
         try {
-            const res = await fetch(`http://localhost:3000/api/usuarios/${formData.matricula}`);
+            const res = await fetch(`http://localhost:3000/api/usuarios/${targetMatricula}`);
             if (res.ok) {
-                // En tu función buscarPorMatricula:
                 const data = await res.json();
                 setFormData({
                     matricula: data.matricula,
@@ -104,16 +115,9 @@ export const useRegistroUsuario = () => {
                 });
                 setImgSrc(data.foto || null);
                 if (data.statusAcceso) {
-                    setAccessStatus(data.statusAcceso); // <--- Actualiza el Toggle visual
+                    setAccessStatus(data.statusAcceso); // Actualiza el Toggle visual
                 }
 
-                // ---------------------------------------------------------
-                // En tu función guardarEnBaseDeDatos:
-                const datosParaEnviar = {
-                    ...formData,
-                    fotoBase64: imgSrc,
-                    statusAcceso: accessStatus // <--- Mandamos el estado verde/rojo al backend
-                };
                 showAlert("¡Encontrado!", "Usuario cargado correctamente.", "success");
             } else {
                 showAlert("No encontrado", "La matrícula no existe. Puedes registrarlo como nuevo.", "warning");
@@ -170,7 +174,7 @@ export const useRegistroUsuario = () => {
             return false;
         }
 
-        return true; // Si sobrevive a todo esto, está perfecto
+        return true; 
     };
 
     // Función puente: Solo abre el modal si las validaciones pasan
@@ -181,14 +185,12 @@ export const useRegistroUsuario = () => {
     };
 
     const guardarEnBaseDeDatos = async () => {
-        // (Ya no necesitamos el IF de validación aquí porque 'intentarGuardar' ya lo hizo)
         try {
             const datosParaEnviar = {
                 ...formData,
                 fotoBase64: imgSrc,
                 statusAcceso: accessStatus
             };
-            // ... (EL RESTO DE TU FETCH SE QUEDA EXACTAMENTE IGUAL) ...
             const respuesta = await fetch('http://localhost:3000/api/usuarios/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -212,12 +214,11 @@ export const useRegistroUsuario = () => {
         }
     };
 
-    // Asegúrate de exportar intentarGuardar al final
     return {
         formData, listaCarreras, imgSrc, accessStatus,
         showConfirmModal, setShowConfirmModal, alertModal, closeAlert,
         webcamRef,
         handleChange, capturarFoto, limpiarFoto, setAccessStatus,
-        buscarPorMatricula, guardarEnBaseDeDatos, intentarGuardar // <--- NUEVO
+        buscarPorMatricula, guardarEnBaseDeDatos, intentarGuardar 
     };
 };

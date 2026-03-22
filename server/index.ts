@@ -2,16 +2,20 @@ import express from 'express';
 import cors from 'cors';
 // CORRECCIÓN 1: Agregamos .js al final (necesario para ESM/Vite)
 import { getConnection, sql } from './database.js';
+import alumnosRouter from './routes/alumnos.js'; // <--- 1. NUEVO: IMPORTAMOS EL ROUTER
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+app.use('/api/alumnos-admi', alumnosRouter); // <--- 2. NUEVO: LE DECIMOS A EXPRESS QUE LO USE
+
 // --- RUTAS (ENDPOINTS) ---
 
 // 1. Prueba de conexión
 app.get('/api/test', async (req, res) => {
+// ... el resto de tu código sigue normal
     try {
         const pool = await getConnection();
         // Si pool es undefined, lanzamos error manual para que caiga en el catch
@@ -157,7 +161,7 @@ app.get('/api/usuarios/:matricula', async (req, res) => {
                 carrera: carreraReal || usuarioRaw.Puesto || '', // Da prioridad a la tabla Grupos
                 grupo: grupoReal || '',                          // Da prioridad a la tabla Grupos
                 grado: gradoReal,                                // Traído directamente de Grupos.Semestre
-                sexo: usuarioRaw.Sexo === 1 ? 'M' : (usuarioRaw.Sexo === 2 ? 'F' : 'NB'),
+                sexo: usuarioRaw.Sexo === 1 ? 'M' : (usuarioRaw.Sexo === 0 ? 'F' : 'NB'),
                 observaciones: usuarioRaw.Observaciones,
                 foto: fotoBase64,
                 statusAcceso: estadoAcceso
