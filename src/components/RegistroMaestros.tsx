@@ -317,6 +317,12 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
             if (res.ok) {
                 const data = await res.json();
 
+                // --- LA SOLUCIÓN DEFINITIVA (A prueba de espacios invisibles y mayúsculas) ---
+                const sexoBD = data.maestro.Sexo ? data.maestro.Sexo.trim().toUpperCase() : '';
+                let sexoFinal = 'M';
+                if (sexoBD === 'FEMENINO') sexoFinal = 'F';
+                if (sexoBD === 'NO BINARIO') sexoFinal = 'NB';
+
                 // 1. Llenamos los datos personales del maestro silenciosamente
                 setTeacherData(prev => ({
                     ...prev,
@@ -324,10 +330,9 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                     apellidoPaterno: data.maestro.ApellidoPaterno || '',
                     apellidoMaterno: data.maestro.ApellidoMaterno || '',
                     correo: data.maestro.Correo || '',
-                    // CAMBIO AQUÍ: Usamos 'M' para que coincida con el HTML de tus radio buttons
-                    sexo: data.maestro.Sexo || 'M'
+                    sexo: sexoFinal // Usamos nuestra variable ya limpia y traducida
                 }));
-
+                
                 // 2. Cargamos la foto en el cuadro negro si existe
                 if (data.maestro.Foto) {
                     setImgSrc(data.maestro.Foto); // Esto apaga la cámara y pone la foto de la base de datos

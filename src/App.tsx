@@ -9,7 +9,7 @@ type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('entrada');
-  
+
   // NUEVO: Estado para guardar la matrícula que vamos a editar
   const [matriculaEdit, setMatriculaEdit] = useState<string | null>(null);
 
@@ -32,8 +32,8 @@ function App() {
       )}
 
       {currentScreen === 'registro' && (
-        <RegistroUsuario 
-          onBack={goHome} 
+        <RegistroUsuario
+          onBack={goHome}
           initialMatricula={matriculaEdit} // <-- Le pasamos la matrícula a la pantalla
         />
       )}
@@ -47,8 +47,8 @@ function App() {
       )}
 
       {currentScreen === 'alumnos' && (
-        <AlumnosAdmi 
-          onBack={goHome} 
+        <AlumnosAdmi
+          onBack={goHome}
           onEditAlumno={(matricula) => {
             // Cuando le den clic a editar, guardamos la matrícula y cambiamos de pantalla
             setMatriculaEdit(matricula);

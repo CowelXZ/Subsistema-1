@@ -1,6 +1,6 @@
 // server/routes/alumnos.ts
 import { Router } from 'express';
-import { getConnection } from '../database.js'; // Asegúrate de que la ruta sea correcta
+import { getConnection, sql } from '../database.js'; // Asegúrate de que la ruta sea correcta
 
 const router = Router();
 
@@ -52,7 +52,7 @@ router.get('/grupos', async (req, res) => {
             // Si la fila trae información de un alumno, lo agregamos al arreglo de su grupo
             if (row.idalumno && row.matricula) {
                 const grupo = gruposMap.get(row.idgrupo);
-                
+
                 // Formateamos el nombre completo sin espacios dobles
                 const nombreCompleto = `${row.Nombre || ''} ${row.ApellidoPaterno || ''} ${row.ApellidoMaterno || ''}`.trim().replace(/\s+/g, ' ');
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './RegistroEntrada.css';
 import { Header } from './common/Header';
+import { MenuDesplegable } from "./MenuDesplegable";
 
 interface Props {
     onNavigateToRegister: () => void;
@@ -47,23 +48,31 @@ export const RegistroEntrada: React.FC<Props> = ({
         if (!codigoInput.trim()) return;
 
         setMensaje('BUSCANDO EN BD...');
-        setUsuario(null);
+        setUsuario(null); // Limpiamos la pantalla anterior
 
         try {
+            // -----------------------------------------------------------
+            // PASO 1: Buscar Identidad del Usuario (SP BuscarUsuario)
+            // -----------------------------------------------------------
             const resUser = await fetch(`http://localhost:3000/api/usuarios/${codigoInput}`);
 
             if (resUser.ok) {
                 const dataUser = await resUser.json();
 
+                // Valores por defecto (si no tiene clase ahora)
                 let materia = "SIN ACTIVIDAD ASIGNADA";
                 let aula = "ÁREA COMÚN / LIBRE";
                 let maestro = "";
-                let grupoReal = dataUser.Ubicacion || "General";
+                let grupoReal = dataUser.grupo || "General";
                 let horaClase = "-- : --";
 
+                // -----------------------------------------------------------
+                // PASO 2: Buscar Horario Actual (SP BuscarHorarioByUserAndDate)
+                // -----------------------------------------------------------
                 if (dataUser.idUsuario) {
                     try {
                         const resHorario = await fetch(`http://localhost:3000/api/horario/${dataUser.idUsuario}`);
+
                         if (resHorario.ok) {
                             const dataHorario = await resHorario.json();
                             if (dataHorario) {
@@ -79,11 +88,16 @@ export const RegistroEntrada: React.FC<Props> = ({
                     }
                 }
 
+                // -----------------------------------------------------------
+                // PASO 3: Construir el Objeto Final para la Vista
+                // -----------------------------------------------------------
                 const usuarioEncontrado: UsuarioData = {
-                    nombreCompleto: `${dataUser.Nombre} ${dataUser.ApellidoPaterno} ${dataUser.ApellidoMaterno || ''}`.trim(),
-                    codigo: dataUser.Usuario,
-                    puesto: dataUser.Puesto || 'Usuario',
-                    ubicacion: dataUser.Ubicacion || 'Sin Asignar',
+                    nombreCompleto: `${dataUser.nombres || ''} ${dataUser.apellidoPaterno || ''} ${dataUser.apellidoMaterno || ''}`.trim(),
+                    codigo: dataUser.matricula || '',
+
+                    puesto: dataUser.Puesto || 'ALUMNO',
+                    ubicacion: dataUser.carrera || 'Sin Asignar',
+
                     foto: dataUser.foto || undefined,
                     statusAcceso: dataUser.statusAcceso === 'denegado' ? 'DENEGADO' : 'PERMITIDO',
                     materiaActual: materia,
@@ -109,7 +123,7 @@ export const RegistroEntrada: React.FC<Props> = ({
 
     return (
         <div className="main-wrapper">
-            <Header titulo="CONTROL DE ACCESO E IDENTIFICACIÓN" />
+            <Header titulo="CONTROL DE ACCESO E IDENTIFICACIÓN" rightAction={<MenuDesplegable />} />
 
             <main className="main-centered">
                 <section className="card login-card wide-card">

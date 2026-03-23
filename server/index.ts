@@ -11,13 +11,14 @@ const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+
+app.use('/api/alumnos-admi', alumnosRouter); // <--- 2. NUEVO: LE DECIMOS A EXPRESS QUE LO USE
+
 app.use('/api/csv/alumnos', rutasCargaAlumnos);
 app.use('/api/csv/maestros', rutasCargaMaestros);
 app.use('/api/csv/materias', rutasCargaMaterias);
 app.use('/api/csv/horarios', rutasCargaHorarios);
-
-app.use('/api/alumnos-admi', alumnosRouter); // <--- 2. NUEVO: LE DECIMOS A EXPRESS QUE LO USE
-
 // --- RUTAS (ENDPOINTS) ---
 
 // 1. Prueba de conexión
@@ -639,9 +640,14 @@ app.post('/api/maestros/agregar-materia', async (req, res) => {
         const jueves = dias.includes('J') ? 1 : 0;
         const viernes = dias.includes('V') ? 1 : 0;
 
-        // Formateo de horas para SQL Server
-        const horaInicioStr = `1900-01-01 ${horaInicio}:00.000`;
-        const horaFinStr = `1900-01-01 ${horaFin}:00.000`;
+        // Formateo de horas universal para SQL Server (YYYYMMDD sin guiones)
+        let inicioLimpio = horaInicio.trim();
+        let finLimpio = horaFin.trim();
+        if (inicioLimpio.length === 4) inicioLimpio = '0' + inicioLimpio;
+        if (finLimpio.length === 4) finLimpio = '0' + finLimpio;
+
+        const horaInicioStr = `19000101 ${inicioLimpio}:00`;
+        const horaFinStr = `19000101 ${finLimpio}:00`;
 
         await pool.request()
             .input('idMaestro', sql.Int, idMaestro)
@@ -701,8 +707,14 @@ app.put('/api/maestros/editar-materia/:id', async (req, res) => {
         const jueves = dias.includes('J') ? 1 : 0;
         const viernes = dias.includes('V') ? 1 : 0;
 
-        const horaInicioStr = `1900-01-01 ${horaInicio}:00.000`;
-        const horaFinStr = `1900-01-01 ${horaFin}:00.000`;
+        // Formateo de horas universal para SQL Server (YYYYMMDD sin guiones)
+        let inicioLimpio = horaInicio.trim();
+        let finLimpio = horaFin.trim();
+        if (inicioLimpio.length === 4) inicioLimpio = '0' + inicioLimpio;
+        if (finLimpio.length === 4) finLimpio = '0' + finLimpio;
+
+        const horaInicioStr = `19000101 ${inicioLimpio}:00`;
+        const horaFinStr = `19000101 ${finLimpio}:00`;
 
         await pool.request()
             .input('idAsignatura', sql.Int, idAsignatura)
