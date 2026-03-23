@@ -3,11 +3,18 @@ import cors from 'cors';
 // CORRECCIÓN 1: Agregamos .js al final (necesario para ESM/Vite)
 import { getConnection, sql } from './database.js';
 import alumnosRouter from './routes/alumnos.js'; // <--- 1. NUEVO: IMPORTAMOS EL ROUTER
-
+import rutasCargaAlumnos from './CargaAlumnosCSV.js';
+import rutasCargaMaestros from './CargaMaestrosCSV.js';
+import rutasCargaMaterias from './CargaMateriasCSV.js';
+import rutasCargaHorarios from './CargaHorariosCSV.js';
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use('/api/csv/alumnos', rutasCargaAlumnos);
+app.use('/api/csv/maestros', rutasCargaMaestros);
+app.use('/api/csv/materias', rutasCargaMaterias);
+app.use('/api/csv/horarios', rutasCargaHorarios);
 
 app.use('/api/alumnos-admi', alumnosRouter); // <--- 2. NUEVO: LE DECIMOS A EXPRESS QUE LO USE
 
@@ -15,7 +22,7 @@ app.use('/api/alumnos-admi', alumnosRouter); // <--- 2. NUEVO: LE DECIMOS A EXPR
 
 // 1. Prueba de conexión
 app.get('/api/test', async (req, res) => {
-// ... el resto de tu código sigue normal
+    // ... el resto de tu código sigue normal
     try {
         const pool = await getConnection();
         // Si pool es undefined, lanzamos error manual para que caiga en el catch
