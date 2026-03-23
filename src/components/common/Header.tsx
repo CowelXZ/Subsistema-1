@@ -26,13 +26,13 @@ export const Header: React.FC<HeaderProps> = ({ titulo, onBack, rightAction }) =
 
             {/* --- DERECHA: Logo FCAT + Acción Extra --- */}
             <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <img 
-                    src="/img/logo-fcat.png" 
-                    alt="FCAT" 
-                    className="top-logo" 
+                <img
+                    src="/img/FCAT_nuevo.jpeg"
+                    alt="FCAT"
+                    className="top-logo"
                     style={{ flexShrink: 0, height: '80px' }} /* <--- Agregamos esto */
                 />
-                {rightAction} 
+                {rightAction}
             </div>
         </header>
     );

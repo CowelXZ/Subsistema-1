@@ -1,61 +1,62 @@
 /* --- TARJETA DEL GRUPO (ACCORDION) --- */
 .group-card {
-    padding: 0; 
-    overflow: hidden; 
-    transition: all 0.3s ease; 
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
     margin-bottom: 20px;
 }
 
 .group-header {
-    background-color: #fff; 
-    padding: 20px 25px; 
+    background-color: #fff;
+    padding: 20px 25px;
     display: flex;
-    justify-content: space-between; 
-    align-items: center; 
+    justify-content: space-between;
+    align-items: center;
     cursor: pointer;
     border-bottom: 1px solid transparent;
 }
 
-.group-header:hover { 
-    background-color: #fcfcfc; 
+.group-header:hover {
+    background-color: #fcfcfc;
 }
 
-.group-info h3 { 
-    margin: 0; 
-    color: #000; 
-    font-size: 1.4rem; 
-    font-weight: 800; 
+.group-info h3 {
+    margin: 0;
+    color: #000;
+    font-size: 1.4rem;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.group-body { 
-    padding: 10px 25px 25px 25px; 
-    background-color: #fff; 
+.group-body {
+    padding: 10px 25px 25px 25px;
+    background-color: #fff;
 }
 
 /* --- TABLA DE ALUMNOS --- */
-.alumnos-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    margin-top: 10px; 
+.alumnos-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
 }
 
 .alumnos-table th {
-    text-align: left; 
-    color: var(--uat-guinda); /* Color Guinda para las cabeceras */
+    text-align: left;
+    color: var(--uat-guinda);
+    /* Color Guinda para las cabeceras */
     font-size: 0.75rem;
-    text-transform: uppercase; 
+    text-transform: uppercase;
     font-weight: 800;
-    padding-bottom: 15px; 
+    padding-bottom: 15px;
     border-bottom: 2px solid #eee;
     letter-spacing: 0.5px;
 }
 
 .alumnos-table td {
-    padding: 16px 5px; 
-    border-bottom: 1px solid #f9f9f9; 
-    vertical-align: middle; 
+    padding: 16px 5px;
+    border-bottom: 1px solid #f9f9f9;
+    vertical-align: middle;
     font-size: 0.95rem;
 }
 
@@ -90,7 +91,7 @@
     margin-top: 10px;
     border-radius: 8px;
     /* Un pequeño borde sutil para enmarcar la tabla */
-    border: 1px solid #f0f0f0; 
+    border: 1px solid #f0f0f0;
 }
 
 /* Hace que los títulos de la tabla no se muevan al scrollear hacia abajo */
@@ -100,7 +101,7 @@
     background-color: #fff;
     z-index: 1;
     /* Ajustamos el borde inferior para que baje con el sticky */
-    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
     border-bottom: none;
 }
 
@@ -116,6 +117,7 @@
     border: 2px dashed #e2e8f0;
     margin-bottom: 15px;
 }
+
 .empty-state-group .material-icons {
     font-size: 48px;
     margin-bottom: 10px;
@@ -128,45 +130,181 @@
     display: flex;
     justify-content: flex-end;
 }
+
 /* --- MENÚ DE FILTRO Y ORDENAMIENTO --- */
-.filter-wrapper { position: relative; }
-.btn-filter {
-    background: white; border: 1px solid #ddd; border-radius: 8px;
-    padding: 10px 14px; cursor: pointer; display: flex;
-    align-items: center; color: #555; transition: background 0.2s;
+.filter-wrapper {
+    position: relative;
 }
-.btn-filter:hover { background: #f9f9f9; }
+
+.btn-filter {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #555;
+    transition: background 0.2s;
+}
+
+.btn-filter:hover {
+    background: #f9f9f9;
+}
 
 .filter-dropdown {
-    position: absolute; top: 110%; right: 0; background: white;
-    border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    width: 250px; z-index: 100; border: 1px solid #eee; overflow: hidden;
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    z-index: 100;
+    border: 1px solid #eee;
+    overflow: hidden;
 }
 
 .filter-section {
-    padding: 12px 15px; border-bottom: 1px solid #eee;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
 }
-.filter-section h4 { 
-    margin: 0 0 10px 0; font-size: 0.85rem; color: #888; text-transform: uppercase; 
+
+.filter-section h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
 }
 
 /* Opciones de texto (Ordenar) */
 .filter-option {
-    display: block; width: 100%; text-align: left; padding: 8px 10px;
-    background: none; border: none; border-radius: 4px; cursor: pointer;
-    font-size: 0.95rem; color: #333; transition: background 0.2s;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #333;
+    transition: background 0.2s;
 }
-.filter-option:hover { background: #f4f4f4; }
-.filter-option.selected { 
-    background: #fff5f5; color: var(--uat-guinda); font-weight: bold; 
+
+.filter-option:hover {
+    background: #f4f4f4;
+}
+
+.filter-option.selected {
+    background: #fff5f5;
+    color: var(--uat-guinda);
+    font-weight: bold;
 }
 
 /* Opciones de Checkbox (Filtrar) */
 .filter-checkbox {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
-    cursor: pointer; font-size: 0.95rem; color: #444;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #444;
 }
-.filter-checkbox:last-child { margin-bottom: 0; }
+
+.filter-checkbox:last-child {
+    margin-bottom: 0;
+}
+
 .filter-checkbox input[type="checkbox"] {
-    width: 16px; height: 16px; cursor: pointer; accent-color: var(--uat-guinda);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--uat-guinda);
+}
+
+/* --- MODAL DE ESTADO (Reutilizado de AsignacionCargo) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-box {
+    background: white;
+    border-radius: 12px;
+    width: 400px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-header {
+    background-color: var(--uat-guinda);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+}
+
+.modal-body {
+    padding: 30px 20px;
+}
+
+.modal-buttons-row {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-modal-active {
+    background-color: #22c55e;
+    color: white;
+    padding: 12px;
+    flex: 1;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-modal-inactive {
+    background-color: #d1d5db;
+    color: #374151;
+    padding: 12px;
+    flex: 1;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-modal-active:hover,
+.btn-modal-inactive:hover {
+    opacity: 0.8;
 }
