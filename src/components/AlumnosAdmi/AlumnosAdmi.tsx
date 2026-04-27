@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AlumnosAdmi.css';
-import { Header } from './common/Header';
+import { Header } from '../common/Header';
 
 interface Alumno { id: number; nombre: string; matricula: string; carrera: string; salon: string; activo: boolean; }
 interface Grupo { id: number; nombreGrupo: string; semestre: string; activo: boolean; alumnos: Alumno[]; }

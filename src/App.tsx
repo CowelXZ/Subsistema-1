@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { RegistroUsuario } from './components/RegistroUsuario/RegistroUsuario';
-import { RegistroEntrada } from './components/RegistroEntrada';
-import { AsignacionCarga } from './components/AsignacionCargo';
-import { RegistroMaestros } from './components/RegistroMaestros';
-import { AlumnosAdmi } from './components/AlumnosAdmi';
+import { RegistroEntrada } from './components/RegistroEntrada/RegistroEntrada';
+import { AsignacionCarga } from './components/AsignacionCargo/AsignacionCargo';
+import { RegistroMaestros } from './components/RegistroMaestros/RegistroMaestros';
+import { AlumnosAdmi } from './components/AlumnosAdmi/AlumnosAdmi';
 
 type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos';
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Modal } from './common/Modal'; // Ajusta la ruta si es necesario
+import { Modal } from './Modal'; // Ajusta la ruta si es necesario
 import Papa from 'papaparse';
 import './MenuDesplegable.css';
 

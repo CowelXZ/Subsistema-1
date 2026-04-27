@@ -66,12 +66,39 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack, initialMatricula }) =
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Grado</label>
-                                <input name="grado" type="text" className="input-field" value={logic.formData.grado} onChange={logic.handleChange} />
+                                <label>Semestre (Grado)</label>
+                                <select
+                                    name="grado"
+                                    className="form-input"
+                                    value={logic.formData.grado}
+                                    onChange={logic.handleChange}
+                                    required
+                                >
+                                    <option value="">Seleccione...</option>
+                                    {logic.listaSemestres.map((s, idx) => (
+                                        <option key={idx} value={s.Semestre}>
+                                            {s.Semestre}° Semestre
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
+
                             <div className="form-group">
                                 <label>Grupo</label>
-                                <input name="grupo" type="text" className="input-field" value={logic.formData.grupo} onChange={logic.handleChange} />
+                                <select
+                                    name="grupo"
+                                    className="form-input"
+                                    value={logic.formData.grupo}
+                                    onChange={logic.handleChange}
+                                    required
+                                >
+                                    <option value="">Seleccione...</option>
+                                    {logic.listaLetrasGrupo.map((g, idx) => (
+                                        <option key={idx} value={g.Grupo}>
+                                            Grupo {g.Grupo}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 

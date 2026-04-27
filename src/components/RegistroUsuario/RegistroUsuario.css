@@ -176,3 +176,45 @@
   margin-top: 30px;
   text-align: center;
 }
+
+/* =========================================
+   ESTILOS PARA LOS SELECTORES (DROPDOWNS)
+========================================= */
+select.form-input {
+    width: 100%;
+    padding: 10px 15px; /* Mismo relleno que los inputs de texto */
+    border: 1px solid #ccc; 
+    border-radius: 8px; /* Bordes redondeados */
+    font-size: 1rem;
+    font-family: inherit;
+    background-color: #fff;
+    color: #333;
+    height: 42px; /* Altura forzada para que cuadre perfecto con los inputs */
+    
+    /* Magia para quitar la flecha fea por defecto y poner una moderna */
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Efecto al hacer clic en el selector */
+select.form-input:focus {
+    outline: none;
+    border-color: var(--uat-guinda);
+    box-shadow: 0 0 0 2px rgba(125, 20, 29, 0.1); /* Resplandor color guinda */
+}
+
+/* Para que la primera opción ("Seleccione...") se vea más clarita */
+select.form-input:invalid,
+select.form-input option[value=""] {
+    color: #999;
+}
+select.form-input option {
+    color: #333;
+}

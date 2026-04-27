@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AsignacionCargo.css';
-import { Header } from './common/Header';
+import { Header } from '../common/Header';
 
 interface Clase {
     id: number;

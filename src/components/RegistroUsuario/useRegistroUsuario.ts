@@ -18,6 +18,9 @@ export interface UserData {
 export const useRegistroUsuario = (initialMatricula?: string | null) => {
     // --- ESTADOS ---
     const [listaCarreras, setListaCarreras] = useState<any[]>([]);
+    const [listaSemestres, setListaSemestres] = useState<any[]>([]); // <--- NUEVO
+    const [listaLetrasGrupo, setListaLetrasGrupo] = useState<any[]>([]); // <--- NUEVO
+    
     const [formData, setFormData] = useState<UserData>({
         matricula: '', nombres: '', apellidoPaterno: '', apellidoMaterno: '',
         grado: '', grupo: '', carrera: 'Contador Público', sexo: 'M', observaciones: ''
@@ -31,15 +34,27 @@ export const useRegistroUsuario = (initialMatricula?: string | null) => {
         isOpen: false, title: '', message: '', type: 'success' as 'success' | 'warning' | 'error'
     });
 
-    // Refs
     const webcamRef = useRef<Webcam>(null);
 
-    // --- EFECTOS ---
+    // --- CARGA INICIAL DE CATÁLOGOS ---
     useEffect(() => {
+        // Cargar Carreras
         fetch('http://localhost:3000/api/carreras')
             .then(res => res.json())
             .then(data => setListaCarreras(data))
-            .catch(err => console.error("Error cargando carreras:", err));
+            .catch(err => console.error("Error al cargar carreras:", err));
+
+        // Cargar Semestres (NUEVO)
+        fetch('http://localhost:3000/api/semestres')
+            .then(res => res.json())
+            .then(data => setListaSemestres(data))
+            .catch(err => console.error("Error al cargar semestres:", err));
+
+        // Cargar Letras de Grupo (NUEVO)
+        fetch('http://localhost:3000/api/grupos-letras')
+            .then(res => res.json())
+            .then(data => setListaLetrasGrupo(data))
+            .catch(err => console.error("Error al cargar grupos:", err));
     }, []);
 
     // --- NUEVO: EFECTO DE AUTO-BÚSQUEDA ---
@@ -215,7 +230,7 @@ export const useRegistroUsuario = (initialMatricula?: string | null) => {
     };
 
     return {
-        formData, listaCarreras, imgSrc, accessStatus,
+        formData, listaCarreras, listaSemestres, listaLetrasGrupo, imgSrc, accessStatus, // <--- Agregamos las dos listas aquí
         showConfirmModal, setShowConfirmModal, alertModal, closeAlert,
         webcamRef,
         handleChange, capturarFoto, limpiarFoto, setAccessStatus,

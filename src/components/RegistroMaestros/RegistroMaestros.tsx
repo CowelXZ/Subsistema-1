@@ -1,8 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import './RegistroMaestros.css';
-import { Header } from './common/Header';
+import { Header } from '../common/Header';
 import Webcam from 'react-webcam';
-import { Modal } from './common/Modal';
+import { Modal } from '../common/Modal';
 
 interface Props {
     onBack: () => void;

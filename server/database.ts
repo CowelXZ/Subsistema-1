@@ -4,14 +4,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const dbSettings = {
-    user: 'admin_bd',           // El usuario que acabamos de crear
-    password: 'servicio',  // PON AQUÍ LA CONTRASEÑA QUE ESCRIBISTE (ej. 123456)
-    server: 'localhost',        // Usamos localhost
-    database: 'CTIRECEPDB',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER || 'localhost',
+    database: process.env.DB_NAME || 'CTIRECEPDB',
     options: {
         encrypt: false,
         trustServerCertificate: true,
-        instanceName: 'MSSQLSERVER02',// <--- IMPORTANTE: Agregamos esto porque tu SQL no es el default
+        instanceName: process.env.DB_INSTANCE || 'MSSQLSERVER',
         enableArithAbort: true
     },
 };

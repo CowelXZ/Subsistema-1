@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './RegistroEntrada.css';
-import { Header } from './common/Header';
-import { MenuDesplegable } from "./MenuDesplegable";
+import { Header } from '../common/Header';
+import { MenuDesplegable } from "../common/MenuDesplegable";
 
 interface Props {
     onNavigateToRegister: () => void;
@@ -71,8 +71,7 @@ export const RegistroEntrada: React.FC<Props> = ({
                 // -----------------------------------------------------------
                 if (dataUser.idUsuario) {
                     try {
-                        const resHorario = await fetch(`http://localhost:3000/api/horario/${dataUser.idUsuario}`);
-
+const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dataUser.idUsuario}`);
                         if (resHorario.ok) {
                             const dataHorario = await resHorario.json();
                             if (dataHorario) {
