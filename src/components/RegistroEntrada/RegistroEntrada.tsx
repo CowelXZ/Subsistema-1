@@ -7,7 +7,7 @@ interface Props {
     onNavigateToRegister: () => void;
     onNavigateToCarga: () => void;
     onNavigateToMaestros: () => void;
-    onNavigateToAlumnos: () => void; // <--- NUEVA PROP
+    onNavigateToAlumnos: () => void;
 }
 
 interface UsuarioData {
@@ -28,12 +28,11 @@ export const RegistroEntrada: React.FC<Props> = ({
     onNavigateToRegister,
     onNavigateToCarga,
     onNavigateToMaestros,
-    onNavigateToAlumnos // <--- RECIBIMOS LA PROP
+    onNavigateToAlumnos
 }) => {
     const [codigoInput, setCodigoInput] = useState('');
     const [usuario, setUsuario] = useState<UsuarioData | null>(null);
     const [mensaje, setMensaje] = useState('ESPERANDO ESCANEO...');
-
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -48,27 +47,19 @@ export const RegistroEntrada: React.FC<Props> = ({
         if (!codigoInput.trim()) return;
 
         setMensaje('BUSCANDO EN BD...');
-        setUsuario(null); // Limpiamos la pantalla anterior
+        setUsuario(null);
 
         try {
-            // -----------------------------------------------------------
-            // PASO 1: Buscar Identidad del Usuario (SP BuscarUsuario)
-            // -----------------------------------------------------------
             const resUser = await fetch(`http://localhost:3000/api/usuarios/${codigoInput}`);
-
+            
             if (resUser.ok) {
                 const dataUser = await resUser.json();
-
-                // Valores por defecto (si no tiene clase ahora)
                 let materia = "SIN ACTIVIDAD ASIGNADA";
                 let aula = "ÁREA COMÚN / LIBRE";
                 let maestro = "";
                 let grupoReal = dataUser.grupo || "General";
                 let horaClase = "-- : --";
 
-                // -----------------------------------------------------------
-                // PASO 2: Buscar Horario Actual (SP BuscarHorarioByUserAndDate)
-                // -----------------------------------------------------------
                 if (dataUser.idUsuario) {
                     try {
 const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dataUser.idUsuario}`);
@@ -87,16 +78,11 @@ const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dat
                     }
                 }
 
-                // -----------------------------------------------------------
-                // PASO 3: Construir el Objeto Final para la Vista
-                // -----------------------------------------------------------
                 const usuarioEncontrado: UsuarioData = {
                     nombreCompleto: `${dataUser.nombres || ''} ${dataUser.apellidoPaterno || ''} ${dataUser.apellidoMaterno || ''}`.trim(),
                     codigo: dataUser.matricula || '',
-
                     puesto: dataUser.Puesto || 'ALUMNO',
                     ubicacion: dataUser.carrera || 'Sin Asignar',
-
                     foto: dataUser.foto || undefined,
                     statusAcceso: dataUser.statusAcceso === 'denegado' ? 'DENEGADO' : 'PERMITIDO',
                     materiaActual: materia,
@@ -122,18 +108,25 @@ const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dat
 
     return (
         <div className="main-wrapper">
-            <Header titulo="CONTROL DE ACCESO E IDENTIFICACIÓN" rightAction={<MenuDesplegable />} />
-
+            <Header 
+                titulo="CONTROL DE ACCESO E IDENTIFICACIÓN" 
+                rightAction={
+                    <MenuDesplegable 
+                        onNavigateToRegister={onNavigateToRegister}
+                        onNavigateToCarga={onNavigateToCarga}
+                        onNavigateToMaestros={onNavigateToMaestros}
+                        onNavigateToAlumnos={onNavigateToAlumnos}
+                    />
+                } 
+            />
             <main className="main-centered">
                 <section className="card login-card wide-card">
-
-                    {/* --- COLUMNA IZQUIERDA: FORMULARIO Y MENÚ --- */}
+                    {/* --- COLUMNA IZQUIERDA: FORMULARIO LIMPIO --- */}
                     <div className="login-section left-section">
                         <div className="input-instruction">
                             <span className="material-icons icon-pulse">qr_code_scanner</span>
                             <label>ESCANEE SU CREDENCIAL</label>
                         </div>
-
                         <form onSubmit={handleScan} className="scan-form">
                             <input
                                 ref={inputRef}
@@ -176,7 +169,6 @@ const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dat
 
                     {/* --- COLUMNA DERECHA: RESULTADO VISUAL --- */}
                     <div className={`login-section right-section info-panel ${usuario ? 'active-scan' : 'idle-scan'}`}>
-
                         <div className="photo-frame">
                             {usuario && usuario.foto ? (
                                 <img src={usuario.foto} alt="Foto usuario" className="user-photo-real" />
@@ -189,7 +181,6 @@ const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dat
                             {usuario ? (
                                 <>
                                     <h2 className="student-name">{usuario.nombreCompleto}</h2>
-
                                     <div
                                         className="access-badge pulse-animation"
                                         style={{ backgroundColor: usuario.statusAcceso === 'PERMITIDO' ? 'var(--success)' : 'var(--danger)' }}
@@ -206,16 +197,13 @@ const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dat
                                             <span className="label">GRUPO / CARRERA</span>
                                             <span className="value">{usuario.grupo} - {usuario.ubicacion}</span>
                                         </div>
-
                                         <div className="detail-item full-width-item highlight-item">
                                             <span className="label">UBICACIÓN ACTUAL</span>
                                             <span className="value">{usuario.aulaActual}</span>
                                         </div>
-
                                         <div className="detail-item full-width-item">
                                             <span className="label">ACTIVIDAD / MATERIA ACTUAL</span>
                                             <div className="value">{usuario.materiaActual}</div>
-
                                             {usuario.maestroActual && (
                                                 <small style={{ color: '#666', display: 'block', marginTop: '5px', fontSize: '0.9rem' }}>
                                                     Docente: {usuario.maestroActual}
@@ -232,7 +220,6 @@ const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dat
                             )}
                         </div>
                     </div>
-
                 </section>
             </main>
         </div>
