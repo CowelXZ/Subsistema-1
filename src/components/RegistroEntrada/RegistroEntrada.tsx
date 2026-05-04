@@ -62,7 +62,7 @@ export const RegistroEntrada: React.FC<Props> = ({
 
                 if (dataUser.idUsuario) {
                     try {
-const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dataUser.idUsuario}`);
+                        const resHorario = await fetch(`http://localhost:3000/api/horario/${dataUser.idUsuario}`);
                         if (resHorario.ok) {
                             const dataHorario = await resHorario.json();
                             if (dataHorario) {
@@ -142,29 +142,6 @@ const resHorario = await fetch(`http://localhost:3000/api/usuarios/horario/${dat
                                 ENTRAR <span className="material-icons">login</span>
                             </button>
                         </form>
-
-                        <div className="action-buttons-grid">
-                            <button className="btn-secondary-action" onClick={onNavigateToRegister}>
-                                <span className="material-icons">person_add</span>
-                                Registrar Alumno
-                            </button>
-
-                            <button className="btn-secondary-action" onClick={onNavigateToMaestros}>
-                                <span className="material-icons">school</span>
-                                Registrar Maestro
-                            </button>
-
-                            <button className="btn-secondary-action btn-full-width orange" onClick={onNavigateToCarga}>
-                                <span className="material-icons">admin_panel_settings</span>
-                                Administración de Maestros
-                            </button>
-
-                            {/* --- NUEVO BOTÓN PARA ALUMNOS ADMI --- */}
-                            <button className="btn-secondary-action btn-full-width orange" onClick={onNavigateToAlumnos}>
-                                <span className="material-icons">groups</span>
-                                Administración de Alumnos
-                            </button>
-                        </div>
                     </div>
 
                     {/* --- COLUMNA DERECHA: RESULTADO VISUAL --- */}

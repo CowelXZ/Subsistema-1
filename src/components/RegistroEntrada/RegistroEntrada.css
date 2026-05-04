@@ -1,6 +1,5 @@
 /* src/components/RegistroEntrada.css */
 
-/* --- Contenedor Principal Ajustado --- */
 .main-centered {
   display: flex;
   justify-content: center;
@@ -8,7 +7,6 @@
   min-height: 60vh;
 }
 
-/* Tarjeta Ancha y Alta */
 .wide-card {
   max-width: 1400px !important;
   width: 95%;
@@ -19,7 +17,6 @@
   width: 100%;
 }
 
-/* --- Layout de Columnas --- */
 .wide-card .login-section.left-section {
   flex: 0.35;
   padding: 50px;
@@ -40,7 +37,6 @@
   transition: background-color 0.3s ease;
 }
 
-/* --- Columna Izquierda: Formulario --- */
 .input-instruction {
   text-align: center;
   margin-bottom: 20px;
@@ -57,7 +53,6 @@
   animation: pulseIcon 2s infinite;
 }
 
-/* Input y Botón Entrar */
 .scan-form {
   display: flex;
   flex-direction: column;
@@ -98,80 +93,12 @@
   transform: translateY(-2px);
 }
 
-/* ========================================================= */
-/* --- NUEVA DISTRIBUCIÓN DE BOTONES (GRID) --- */
-/* ========================================================= */
-
-.action-buttons-grid {
-  margin-top: 30px; /* Separación del botón ENTRAR */
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 Columnas iguales */
-  gap: 15px;
-  width: 100%;
-}
-
-/* Estilo base para los botones de acción */
-.btn-secondary-action {
-  background-color: var(--uat-guinda);
-  color: white;
-  border: none;
-  padding: 15px 10px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column; /* Icono arriba, texto abajo */
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  height: 100%; /* Para que llenen la celda del grid */
-}
-
-.btn-secondary-action:hover {
-  transform: translateY(-3px);
-  background-color: var(--uat-guinda-dark);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-.btn-secondary-action .material-icons {
-  font-size: 28px; /* Iconos grandes */
-}
-
-/* Modificador: Botón Naranja (Gestión) */
-.btn-secondary-action.orange {
-  background-color: var(--orange);
-}
-
-.btn-secondary-action.orange:hover {
-  background-color: #c2410c; /* Naranja oscuro */
-}
-
-/* Modificador: Ancho Completo (Span 2 columnas) */
-.btn-full-width {
-  grid-column: span 2;
-  flex-direction: row; /* Icono a la izquierda, texto a la derecha */
-  padding: 18px;
-  font-size: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* ========================================================= */
-/* --- FIN NUEVA DISTRIBUCIÓN --- */
-/* ========================================================= */
-
-
-/* --- Columna Derecha: Datos --- */
 .idle-scan { background-color: #f8f9fa; }
 .active-scan { background-color: #fff; }
 
-/* Foto Gigante (300px) */
 .photo-frame {
-  width: 300px;  
-  height: 300px; 
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
   border: 8px solid white;
   box-shadow: 0 15px 35px rgba(0,0,0,0.15);
@@ -185,7 +112,7 @@
 }
 
 .user-icon-big {
-  font-size: 160px; 
+  font-size: 160px;
   color: #adb5bd;
 }
 
@@ -195,7 +122,6 @@
   object-fit: cover;
 }
 
-/* Info Textos */
 .user-display-info {
   width: 100%;
   max-width: 600px;
@@ -220,7 +146,6 @@
   margin-bottom: 30px;
 }
 
-/* Grid de detalles */
 .details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -233,7 +158,6 @@
 }
 
 .detail-item { display: flex; flex-direction: column; }
-
 .full-width-item {
   grid-column: span 2;
   border-top: 1px solid #dee2e6;
@@ -245,13 +169,14 @@
 .detail-item .label { font-size: 0.75rem; color: #6c757d; font-weight: bold; margin-bottom: 4px; }
 .detail-item .value { font-size: 1.1rem; font-weight: 500; color: #212529; }
 
-/* Animaciones */
 @keyframes pulseIcon {
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.1); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
+
 .pulse-animation { animation: pulseBadge 1.5s infinite; }
+
 @keyframes pulseBadge {
   0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
   70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }

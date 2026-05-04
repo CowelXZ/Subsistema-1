@@ -19,7 +19,6 @@
 .btn-menu-trigger .material-icons {
     font-size: 42px;
 }
-
 /* =========================================
    2. FONDO OSCURO (SEGUNDO PLANO)
 ========================================= */
@@ -373,4 +372,109 @@
 /* Ajuste del icono para que vaya acorde al nuevo tamaño */
 .btn-descargar-plantilla .material-icons {
     font-size: 1.3rem;
+}
+/* =========================================
+   7. NUEVAS SECCIONES Y VARIANTES DE COLOR
+========================================= */
+
+/* Permitimos scroll interno si la pantalla es muy pequeña */
+.menu-lateral-scroll {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 5px; /* Para que la barra de scroll no quede tan pegada */
+}
+
+/* Títulos de sección */
+.menu-section-title {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    margin-top: 0;
+    padding-left: 5px;
+    font-weight: 700;
+}
+
+/* Línea divisoria entre secciones */
+.menu-divider {
+    border: 0;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 25px 0;
+}
+
+/* Variante Naranja para los botones de Administración */
+.btn-lateral-option.orange-variant {
+    background-color: var(--orange);
+}
+
+.btn-lateral-option.orange-variant:hover {
+    background-color: #c2410c; /* Un naranja más oscuro para el hover */
+}
+/* =========================================
+   8. ESTILOS DEL SUBMENÚ DESPLEGABLE (ACORDEÓN)
+========================================= */
+
+/* Cabecera clickeable de la sección */
+.menu-section-header.clickable {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 5px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    margin-bottom: 10px;
+}
+
+.menu-section-header.clickable:hover {
+    background-color: #e2e8f0; /* Gris muy sutil al pasar el mouse */
+}
+
+.menu-section-header.clickable .dropdown-icon {
+    color: #64748b;
+    transition: transform 0.3s;
+}
+
+/* Espaciado del submenú */
+.submenu {
+    padding-left: 10px; /* Para que se vea un poco indentado hacia la derecha */
+}
+
+/* Botones secundarios (Submenú) */
+.btn-lateral-option.submenu-btn {
+    background-color: #fff5f5; /* Un tono rojizo ultra claro */
+    color: var(--uat-guinda);
+    box-shadow: none;
+    border: 1px solid #fbdad9; /* Borde sutil guinda claro */
+    padding: 12px 15px;
+    font-size: 0.9rem;
+}
+
+.btn-lateral-option.submenu-btn .material-icons {
+    color: var(--uat-guinda);
+}
+
+/* Efecto Hover */
+.btn-lateral-option.submenu-btn:hover {
+    background-color: var(--uat-guinda); /* Se vuelve sólido al tocarlo */
+    color: white;
+    border-color: var(--uat-guinda);
+    transform: translateX(5px); 
+    box-shadow: 0 4px 8px rgba(125, 20, 29, 0.2);
+}
+
+.btn-lateral-option.submenu-btn:hover .material-icons {
+    color: white;
+}
+
+/* Animación de despliegue suave */
+.animate-fade-down {
+    animation: fadeDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top;
+}
+
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
