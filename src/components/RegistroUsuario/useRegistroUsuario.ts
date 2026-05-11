@@ -38,13 +38,13 @@ export const useRegistroUsuario = (initialMatricula?: string | null) => {
 // --- EFECTOS ---
     useEffect(() => {
         // Cargar Carreras
-        fetch('http://localhost:3000/api/carreras')
+        fetch('/api/carreras')
             .then(res => res.json())
             .then(data => setListaCarreras(data))
             .catch(err => console.error("Error cargando carreras:", err));
 
         // NUEVO: Cargar Letras de Grupos
-        fetch('http://localhost:3000/api/grupos-letras')
+        fetch('/api/grupos-letras')
             .then(res => res.json())
             .then(data => setListaLetrasGrupo(data))
             .catch(err => console.error("Error cargando grupos:", err));
@@ -199,7 +199,7 @@ export const useRegistroUsuario = (initialMatricula?: string | null) => {
                 fotoBase64: imgSrc,
                 statusAcceso: accessStatus
             };
-            const respuesta = await fetch('http://localhost:3000/api/usuarios/crear', {
+            const respuesta = await fetch('/api/usuarios/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosParaEnviar)

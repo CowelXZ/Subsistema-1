@@ -26,7 +26,7 @@ export const AlumnosAdmi: React.FC<Props> = ({ onBack, onEditAlumno }) => {
     const cargarGrupos = async (mostrarCargando = true) => {
         if (mostrarCargando) setCargando(true);
         try {
-            const res = await fetch('http://localhost:3000/api/alumnos-admi/grupos');
+            const res = await fetch('/api/alumnos-admi/grupos');
             if (res.ok) setGrupos(await res.json());
             else setError(`Error del servidor: ${res.status}`);
         } catch (err: any) {

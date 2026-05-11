@@ -45,14 +45,14 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
     // 1. AGREGA ESTA FUNCIÓN AQUÍ
     const cargarMaterias = () => {
-        fetch('http://localhost:3000/api/materias')
+        fetch('/api/materias')
             .then(res => res.json())
             .then(data => setListaMaterias(data))
             .catch(err => console.error("Error cargando materias:", err));
     };
 
     const cargarSemestres = () => {
-        fetch('http://localhost:3000/api/semestres')
+        fetch('/api/semestres')
             .then(res => res.json())
             .then(data => setListaSemestres(data))
             .catch(err => console.error("Error cargando semestres:", err));
@@ -60,18 +60,18 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
     const cargarListasGrupos = () => {
         // Cargamos Semestres
-        fetch('http://localhost:3000/api/semestres')
+        fetch('/api/semestres')
             .then(res => res.json())
             .then(data => setListaSemestres(data));
 
         // Cargamos Letras (A, B, C...)
-        fetch('http://localhost:3000/api/grupos-letras')
+        fetch('/api/grupos-letras')
             .then(res => res.json())
             .then(data => setListaLetrasGrupo(data));
     };
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/carreras')
+        fetch('/api/carreras')
             .then(res => res.json())
             .then(data => setListaCarreras(data));
 
@@ -82,7 +82,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
         cargarListasGrupos()
 
-        fetch('http://localhost:3000/api/areas')
+        fetch('/api/areas')
             .then(res => res.json())
             .then(data => {
                 setListaAreas(data);
@@ -263,7 +263,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                 horario: horario
             };
 
-            const respuesta = await fetch('http://localhost:3000/api/maestros/crear', {
+            const respuesta = await fetch('/api/maestros/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosParaEnviar)

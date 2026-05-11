@@ -53,7 +53,7 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
 
     const cargarCargaAcademica = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/maestros/carga');
+            const res = await fetch('/api/maestros/carga');
             if (res.ok) setProfesores(await res.json());
         } catch (error) { console.error("Error:", error); }
     };
@@ -61,11 +61,11 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
     // --- CARGA DE TODOS LOS CATÁLOGOS ---
     useEffect(() => {
         cargarCargaAcademica();
-        fetch('http://localhost:3000/api/carreras').then(res => res.json()).then(data => setListaCarreras(data));
-        fetch('http://localhost:3000/api/materias').then(res => res.json()).then(data => setListaMaterias(data));
-        fetch('http://localhost:3000/api/semestres').then(res => res.json()).then(data => setListaSemestres(data));
-        fetch('http://localhost:3000/api/grupos-letras').then(res => res.json()).then(data => setListaLetrasGrupo(data));
-        fetch('http://localhost:3000/api/areas').then(res => res.json()).then(data => setListaAreas(data)); // NUEVO
+        fetch('/api/carreras').then(res => res.json()).then(data => setListaCarreras(data));
+        fetch('/api/materias').then(res => res.json()).then(data => setListaMaterias(data));
+        fetch('/api/semestres').then(res => res.json()).then(data => setListaSemestres(data));
+        fetch('/api/grupos-letras').then(res => res.json()).then(data => setListaLetrasGrupo(data));
+        fetch('/api/areas').then(res => res.json()).then(data => setListaAreas(data)); // NUEVO
     }, []);
 
     let profesoresProcesados = [...profesores];
@@ -147,7 +147,7 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
 
         // --- Si todo está correcto, hacemos el guardado/edición ---
         try {
-            const url = editingClassId ? `http://localhost:3000/api/maestros/editar-materia/${editingClassId}` : 'http://localhost:3000/api/maestros/agregar-materia';
+            const url = editingClassId ? `http://localhost:3000/api/maestros/editar-materia/${editingClassId}` : '/api/maestros/agregar-materia';
             const res = await fetch(url, {
                 method: editingClassId ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
