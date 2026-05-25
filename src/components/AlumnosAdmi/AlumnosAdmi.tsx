@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './AlumnosAdmi.css';
 import { Header } from '../common/Header';
+import { Modal } from '../common/Modal';
+import { API_URL } from '../../config';
 
 interface Alumno { id: number; nombre: string; matricula: string; carrera: string; salon: string; activo: boolean; }
 interface Grupo { id: number; nombreGrupo: string; semestre: string; activo: boolean; alumnos: Alumno[]; }
@@ -23,10 +25,17 @@ export const AlumnosAdmi: React.FC<Props> = ({ onBack, onEditAlumno }) => {
         visible: boolean, tipo: 'grupo' | 'alumno' | null, idTarget: number | null, nombreTarget: string, estadoActual: boolean
     }>({ visible: false, tipo: null, idTarget: null, nombreTarget: '', estadoActual: false });
 
+    // --- ESTADO: Alertas y Confirmaciones (Modal bonito) ---
+    const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'success' as 'success' | 'warning' | 'error' });
+    const showAlert = (title: string, msg: string, type: 'success' | 'warning' | 'error') => setAlertModal({ isOpen: true, title, message: msg, type });
+    const closeAlert = () => setAlertModal(prev => ({ ...prev, isOpen: false }));
+
+    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean, idAlumno: number | null, nombreAlumno: string }>({ isOpen: false, idAlumno: null, nombreAlumno: '' });
+
     const cargarGrupos = async (mostrarCargando = true) => {
         if (mostrarCargando) setCargando(true);
         try {
-            const res = await fetch('http://localhost:3000/api/alumnos-admi/grupos');
+            const res = await fetch(`${API_URL}/api/alumnos-admi/grupos`);
             if (res.ok) setGrupos(await res.json());
             else setError(`Error del servidor: ${res.status}`);
         } catch (err: any) {
@@ -36,13 +45,21 @@ export const AlumnosAdmi: React.FC<Props> = ({ onBack, onEditAlumno }) => {
 
     useEffect(() => { cargarGrupos(); }, []);
 
-    const eliminarAlumno = async (idAlumno: number, nombreAlumno: string) => {
-        if (!window.confirm(`¿Seguro que deseas desvincular a ${nombreAlumno}?`)) return;
+    const eliminarAlumno = (idAlumno: number, nombreAlumno: string) => {
+        setConfirmModal({ isOpen: true, idAlumno, nombreAlumno });
+    };
+
+    const confirmarEliminar = async () => {
+        if (!confirmModal.idAlumno) return;
+        const id = confirmModal.idAlumno;
+        setConfirmModal({ isOpen: false, idAlumno: null, nombreAlumno: '' });
         try {
-            const res = await fetch(`http://localhost:3000/api/alumnos-admi/alumnos/${idAlumno}`, { method: 'DELETE' });
+            const res = await fetch(`${API_URL}/api/alumnos-admi/alumnos/${id}`, { method: 'DELETE' });
             if (res.ok) await cargarGrupos(false);
-            else alert("Error al desvincular");
-        } catch (err) { alert("Error de conexión."); }
+            else showAlert("Error", "No se pudo desvincular al alumno.", "error");
+        } catch (err) {
+            showAlert("Error de Conexión", "No se pudo conectar con el servidor.", "error");
+        }
     };
 
     const cambiarEstado = async (nuevoEstado: number) => {
@@ -50,8 +67,8 @@ export const AlumnosAdmi: React.FC<Props> = ({ onBack, onEditAlumno }) => {
 
         try {
             const url = modalActividad.tipo === 'grupo'
-                ? `http://localhost:3000/api/alumnos-admi/grupos/${modalActividad.idTarget}/estado`
-                : `http://localhost:3000/api/alumnos-admi/alumnos/${modalActividad.idTarget}/estado`;
+                ? `${API_URL}/api/alumnos-admi/grupos/${modalActividad.idTarget}/estado`
+                : `${API_URL}/api/alumnos-admi/alumnos/${modalActividad.idTarget}/estado`;
 
             const res = await fetch(url, {
                 method: 'PUT',
@@ -63,7 +80,7 @@ export const AlumnosAdmi: React.FC<Props> = ({ onBack, onEditAlumno }) => {
                 await cargarGrupos(false);
                 setModalActividad({ visible: false, tipo: null, idTarget: null, nombreTarget: '', estadoActual: false });
             } else {
-                alert("Error al cambiar el estado en la base de datos.");
+                showAlert("Error", "No se pudo cambiar el estado en la base de datos.", "error");
             }
         } catch (error) { console.error(error); }
     };
@@ -232,6 +249,31 @@ export const AlumnosAdmi: React.FC<Props> = ({ onBack, onEditAlumno }) => {
                     </div>
                 </div>
             )}
+
+            {/* --- MODAL DE ALERTAS --- */}
+            <Modal isOpen={alertModal.isOpen} onClose={closeAlert} title={alertModal.title}>
+                <div style={{ textAlign: 'center' }}>
+                    <span className="material-icons" style={{ fontSize: '48px', marginBottom: '15px', color: alertModal.type === 'success' ? '#28a745' : alertModal.type === 'error' ? '#dc3545' : '#e67e22' }}>
+                        {alertModal.type === 'success' ? 'check_circle' : alertModal.type === 'error' ? 'error' : 'info'}
+                    </span>
+                    <p style={{ whiteSpace: 'pre-line', margin: '0 0 20px 0' }}>{alertModal.message}</p>
+                    <div className="modal-actions" style={{ justifyContent: 'center' }}>
+                        <button className="btn-capture" onClick={closeAlert}>Entendido</button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* --- MODAL DE CONFIRMACIÓN: DESVINCULAR ALUMNO --- */}
+            <Modal isOpen={confirmModal.isOpen} onClose={() => setConfirmModal({ isOpen: false, idAlumno: null, nombreAlumno: '' })} title="Confirmar Desvinculación">
+                <div style={{ textAlign: 'center' }}>
+                    <span className="material-icons" style={{ fontSize: '48px', marginBottom: '15px', color: '#dc3545' }}>person_remove</span>
+                    <p style={{ margin: '0 0 20px 0' }}>¿Seguro que deseas desvincular a <strong>{confirmModal.nombreAlumno}</strong>? Esta acción no se puede deshacer.</p>
+                    <div className="modal-actions" style={{ justifyContent: 'center', gap: '15px' }}>
+                        <button className="btn-clean" onClick={() => setConfirmModal({ isOpen: false, idAlumno: null, nombreAlumno: '' })}>Cancelar</button>
+                        <button className="btn-capture" style={{ backgroundColor: '#dc3545' }} onClick={confirmarEliminar}>Sí, Desvincular</button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

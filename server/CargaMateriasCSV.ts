@@ -12,6 +12,11 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ mensaje: "El archivo CSV de materias está vacío o no tiene el formato correcto." });
         }
 
+        const MAX_REGISTROS = 1000;
+        if (datos.length > MAX_REGISTROS) {
+            return res.status(400).json({ mensaje: `El archivo excede el límite de ${MAX_REGISTROS} materias por carga.` });
+        }
+
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");
 
@@ -96,7 +101,7 @@ router.post('/', async (req, res) => {
 
     } catch (error: any) {
         console.error("Error general en carga masiva de materias:", error);
-        res.status(500).json({ mensaje: error.message });
+        res.status(500).json({ mensaje: "Error interno al procesar la carga. Contacta al administrador." });
     }
 });
 

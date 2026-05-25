@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Modal } from '../common/Modal';
 import Papa from 'papaparse';
 import './MenuDesplegable.css';
+import { API_URL } from '../../config';
 
 const columnasRequeridas: Record<string, string[]> = {
     'Alumnos': ['Usuario', 'Nombre', 'ApellidoPaterno', 'ApellidoMaterno', 'Sexo', 'Ubicacion'],
@@ -113,7 +114,7 @@ export const MenuDesplegable: React.FC<Props> = ({
                 const datosJson = resultados.data;
                 try {
                     const endpoint = tipoCarga.toLowerCase();
-                    const response = await fetch(`http://localhost:3000/api/csv/${endpoint}`, {
+                    const response = await fetch(`${API_URL}/api/csv/${endpoint}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ datos: datosJson })

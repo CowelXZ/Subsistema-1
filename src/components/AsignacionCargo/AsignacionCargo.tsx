@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './AsignacionCargo.css';
 import { Header } from '../common/Header';
+import { Modal } from '../common/Modal';
+import { API_URL } from '../../config';
 
 interface Clase {
     id: number;
@@ -38,6 +40,14 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
 
     const [modalActividad, setModalActividad] = useState<{ visible: boolean, profId: number | null, paso: 1 | 2 }>({ visible: false, profId: null, paso: 1 });
 
+    // --- ESTADO: Alertas (Modal bonito) ---
+    const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '', type: 'success' as 'success' | 'warning' | 'error' });
+    const showAlert = (title: string, msg: string, type: 'success' | 'warning' | 'error') => setAlertModal({ isOpen: true, title, message: msg, type });
+    const closeAlert = () => setAlertModal(prev => ({ ...prev, isOpen: false }));
+
+    // --- ESTADO: Modal de Confirmación de Eliminación ---
+    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean, idClase: number | null }>({ isOpen: false, idClase: null });
+
     // --- ESTADOS DINÁMICOS COMPLETOS ---
     const [listaCarreras, setListaCarreras] = useState<any[]>([]);
     const [listaMaterias, setListaMaterias] = useState<any[]>([]);
@@ -53,7 +63,7 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
 
     const cargarCargaAcademica = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/maestros/carga');
+            const res = await fetch(`${API_URL}/api/maestros/carga`);
             if (res.ok) setProfesores(await res.json());
         } catch (error) { console.error("Error:", error); }
     };
@@ -61,11 +71,11 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
     // --- CARGA DE TODOS LOS CATÁLOGOS ---
     useEffect(() => {
         cargarCargaAcademica();
-        fetch('http://localhost:3000/api/carreras').then(res => res.json()).then(data => setListaCarreras(data));
-        fetch('http://localhost:3000/api/materias').then(res => res.json()).then(data => setListaMaterias(data));
-        fetch('http://localhost:3000/api/semestres').then(res => res.json()).then(data => setListaSemestres(data));
-        fetch('http://localhost:3000/api/grupos-letras').then(res => res.json()).then(data => setListaLetrasGrupo(data));
-        fetch('http://localhost:3000/api/areas').then(res => res.json()).then(data => setListaAreas(data)); // NUEVO
+        fetch(`${API_URL}/api/carreras`).then(res => res.json()).then(data => setListaCarreras(data));
+        fetch(`${API_URL}/api/materias`).then(res => res.json()).then(data => setListaMaterias(data));
+        fetch(`${API_URL}/api/semestres`).then(res => res.json()).then(data => setListaSemestres(data));
+        fetch(`${API_URL}/api/grupos-letras`).then(res => res.json()).then(data => setListaLetrasGrupo(data));
+        fetch(`${API_URL}/api/areas`).then(res => res.json()).then(data => setListaAreas(data));
     }, []);
 
     let profesoresProcesados = [...profesores];
@@ -141,13 +151,13 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
 
         // 3. Mostrar errores si los hay
         if (errores.length > 0) {
-            alert("⚠️ No se puede guardar la materia. Por favor revisa lo siguiente:\n\n" + errores.join("\n"));
+            showAlert("Faltan Datos", "No se puede guardar la materia. Por favor revisa lo siguiente:\n\n" + errores.join("\n"), "warning");
             return;
         }
 
         // --- Si todo está correcto, hacemos el guardado/edición ---
         try {
-            const url = editingClassId ? `http://localhost:3000/api/maestros/editar-materia/${editingClassId}` : 'http://localhost:3000/api/maestros/agregar-materia';
+            const url = editingClassId ? `${API_URL}/api/maestros/editar-materia/${editingClassId}` : `${API_URL}/api/maestros/agregar-materia`;
             const res = await fetch(url, {
                 method: editingClassId ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -158,25 +168,35 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                 await cargarCargaAcademica();
                 cerrarFormulario();
             } else {
-                alert("❌ Error al comunicarse con el servidor.");
+                showAlert("Error del Servidor", "Error al comunicarse con el servidor. Intenta de nuevo.", "error");
             }
         } catch (error) {
             console.error("Error:", error);
+            showAlert("Error de Conexión", "No se pudo conectar con el servidor.", "error");
         }
     };
 
-    const eliminarMateria = async (idClase: number) => {
-        if (!window.confirm("¿Seguro que deseas eliminar esta materia?")) return;
+    const eliminarMateria = (idClase: number) => {
+        setConfirmModal({ isOpen: true, idClase });
+    };
+
+    const confirmarEliminar = async () => {
+        if (!confirmModal.idClase) return;
+        setConfirmModal({ isOpen: false, idClase: null });
         try {
-            const res = await fetch(`http://localhost:3000/api/maestros/eliminar-materia/${idClase}`, { method: 'DELETE' });
+            const res = await fetch(`${API_URL}/api/maestros/eliminar-materia/${confirmModal.idClase}`, { method: 'DELETE' });
             if (res.ok) await cargarCargaAcademica();
-        } catch (error) { console.error("Error:", error); }
+            else showAlert("Error", "No se pudo eliminar la materia.", "error");
+        } catch (error) {
+            console.error("Error:", error);
+            showAlert("Error de Conexión", "No se pudo conectar con el servidor.", "error");
+        }
     };
 
     const cambiarEstado = async (nuevoEstado: number) => {
         if (!modalActividad.profId) return;
         try {
-            const res = await fetch(`http://localhost:3000/api/maestros/estado/${modalActividad.profId}`, {
+            const res = await fetch(`${API_URL}/api/maestros/estado/${modalActividad.profId}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: nuevoEstado })
             });
             if (res.ok) { await cargarCargaAcademica(); setModalActividad(prev => ({ ...prev, paso: 2 })); }
@@ -431,6 +451,31 @@ export const AsignacionCarga: React.FC<Props> = ({ onBack }) => {
                     </div>
                 </div>
             )}
+
+            {/* --- MODAL DE ALERTAS --- */}
+            <Modal isOpen={alertModal.isOpen} onClose={closeAlert} title={alertModal.title}>
+                <div style={{ textAlign: 'center' }}>
+                    <span className="material-icons" style={{ fontSize: '48px', marginBottom: '15px', color: alertModal.type === 'success' ? '#28a745' : alertModal.type === 'error' ? '#dc3545' : '#e67e22' }}>
+                        {alertModal.type === 'success' ? 'check_circle' : alertModal.type === 'error' ? 'error' : 'info'}
+                    </span>
+                    <p style={{ whiteSpace: 'pre-line', margin: '0 0 20px 0' }}>{alertModal.message}</p>
+                    <div className="modal-actions" style={{ justifyContent: 'center' }}>
+                        <button className="btn-capture" onClick={closeAlert}>Entendido</button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* --- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --- */}
+            <Modal isOpen={confirmModal.isOpen} onClose={() => setConfirmModal({ isOpen: false, idClase: null })} title="Confirmar Eliminación">
+                <div style={{ textAlign: 'center' }}>
+                    <span className="material-icons" style={{ fontSize: '48px', marginBottom: '15px', color: '#dc3545' }}>delete_forever</span>
+                    <p style={{ margin: '0 0 20px 0' }}>¿Seguro que deseas eliminar esta materia? Esta acción no se puede deshacer.</p>
+                    <div className="modal-actions" style={{ justifyContent: 'center', gap: '15px' }}>
+                        <button className="btn-clean" onClick={() => setConfirmModal({ isOpen: false, idClase: null })}>Cancelar</button>
+                        <button className="btn-capture" style={{ backgroundColor: '#dc3545' }} onClick={confirmarEliminar}>Sí, Eliminar</button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

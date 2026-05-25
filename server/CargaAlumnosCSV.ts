@@ -12,6 +12,11 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ mensaje: "El archivo CSV está vacío o no tiene el formato correcto." });
         }
 
+        const MAX_REGISTROS = 2000;
+        if (alumnos.length > MAX_REGISTROS) {
+            return res.status(400).json({ mensaje: `El archivo excede el límite de ${MAX_REGISTROS} registros por carga. Divide el archivo en partes más pequeñas.` });
+        }
+
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");
 

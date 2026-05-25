@@ -1,5 +1,6 @@
-import { Router } from 'express';
+import { Router, NextFunction } from 'express';
 import { getConnection, sql } from '../database.js';
+import { validateId } from '../middleware/validateId.js';
 
 const router = Router();
 
@@ -64,11 +65,11 @@ router.get('/:matricula', async (req, res) => {
         } else {
             res.status(404).json({ mensaje: 'Usuario no encontrado' });
         }
-    } catch (error: any) { res.status(500).send(error.message); }
+    } catch (error: any) { next(error); }
 });
 
 // 2. Buscar Horario Actual por ID de Usuario (Para Registro de Entrada)
-router.get('/horario/:idUsuario', async (req, res) => {
+router.get('/horario/:idUsuario', validateId('idUsuario'), async (req, res, next: NextFunction) => {
     try {
         const { idUsuario } = req.params;
         const pool = await getConnection();
@@ -81,8 +82,7 @@ router.get('/horario/:idUsuario', async (req, res) => {
 
         res.json(result.recordset.length > 0 ? result.recordset[0] : null);
     } catch (error: any) {
-        console.error("Error buscando horario:", error);
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
@@ -134,7 +134,7 @@ router.post('/crear', async (req, res) => {
             `);
 
         res.status(200).json({ mensaje: 'Usuario procesado correctamente' });
-    } catch (error: any) { res.status(500).send(error.message); }
+    } catch (error: any) { next(error); }
 });
 
 export default router;

@@ -3,6 +3,7 @@ import './RegistroMaestros.css';
 import { Header } from '../common/Header';
 import Webcam from 'react-webcam';
 import { Modal } from '../common/Modal';
+import { API_URL } from '../../config';
 
 interface Props {
     onBack: () => void;
@@ -45,33 +46,31 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
     // 1. AGREGA ESTA FUNCIÓN AQUÍ
     const cargarMaterias = () => {
-        fetch('http://localhost:3000/api/materias')
+        fetch(`${API_URL}/api/materias`)
             .then(res => res.json())
             .then(data => setListaMaterias(data))
             .catch(err => console.error("Error cargando materias:", err));
     };
 
     const cargarSemestres = () => {
-        fetch('http://localhost:3000/api/semestres')
+        fetch(`${API_URL}/api/semestres`)
             .then(res => res.json())
             .then(data => setListaSemestres(data))
             .catch(err => console.error("Error cargando semestres:", err));
     };
 
     const cargarListasGrupos = () => {
-        // Cargamos Semestres
-        fetch('http://localhost:3000/api/semestres')
+        fetch(`${API_URL}/api/semestres`)
             .then(res => res.json())
             .then(data => setListaSemestres(data));
 
-        // Cargamos Letras (A, B, C...)
-        fetch('http://localhost:3000/api/grupos-letras')
+        fetch(`${API_URL}/api/grupos-letras`)
             .then(res => res.json())
             .then(data => setListaLetrasGrupo(data));
     };
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/carreras')
+        fetch(`${API_URL}/api/carreras`)
             .then(res => res.json())
             .then(data => setListaCarreras(data));
 
@@ -82,7 +81,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
 
         cargarListasGrupos()
 
-        fetch('http://localhost:3000/api/areas')
+        fetch(`${API_URL}/api/areas`)
             .then(res => res.json())
             .then(data => {
                 setListaAreas(data);
@@ -128,7 +127,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
         }
     }, [webcamRef]);
 
-    const limpiarFoto = () => setImgSrc(null);
+
 
     // --- MANEJADORES DE CAMBIOS ---
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -263,14 +262,14 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
                 horario: horario
             };
 
-            const respuesta = await fetch('http://localhost:3000/api/maestros/crear', {
+            const respuesta = await fetch(`${API_URL}/api/maestros/crear`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosParaEnviar)
             });
 
             if (respuesta.ok) {
-                alert("✅ ¡Maestro y Horarios Guardados Exitosamente!");
+                showAlert("¡Éxito!", "Maestro y horarios guardados exitosamente.", "success");
                 cargarMaterias();
                 setImgSrc(null);
                 setHorario([]);
@@ -312,7 +311,7 @@ export const RegistroMaestros: React.FC<Props> = ({ onBack }) => {
         if (!teacherData.numeroEmpleado) return;
 
         try {
-            const res = await fetch(`http://localhost:3000/api/maestros/buscar/${teacherData.numeroEmpleado}`);
+            const res = await fetch(`${API_URL}/api/maestros/buscar/${teacherData.numeroEmpleado}`);
 
             if (res.ok) {
                 const data = await res.json();

@@ -1,0 +1,25 @@
+# =============================================
+# Dockerfile — Backend (Node.js + Express)
+# =============================================
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copiamos manifiestos e instalamos TODAS las dependencias
+# (incluyendo tsx que es necesario en runtime)
+COPY package*.json ./
+RUN npm ci --ignore-scripts
+
+# Copiamos los archivos del servidor
+COPY server/ ./server/
+COPY tsconfig*.json ./
+
+# Puerto expuesto
+EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Arrancar el servidor con tsx
+CMD ["npx", "tsx", "server/index.ts"]

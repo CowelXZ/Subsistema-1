@@ -1,0 +1,19 @@
+# No incluir node_modules (Docker los instala solo desde package.json)
+node_modules
+
+# No incluir el build anterior
+dist
+
+# No incluir archivos de entorno con secretos
+.env
+
+# No incluir archivos de desarrollo
+.git
+.gitignore
+*.log
+npm-debug.log*
+
+# No incluir archivos de configuración de editores
+.vscode
+.idea
+.DS_Store

@@ -98,6 +98,21 @@ export const RegistroUsuario: React.FC<Props> = ({ onBack, initialMatricula }) =
                         </div>
 
                         <div className="form-group">
+                            <label>Carrera</label>
+                            <select
+                                name="carrera"
+                                className="input-field"
+                                value={logic.formData.carrera}
+                                onChange={logic.handleChange}
+                            >
+                                <option value="">Seleccione una carrera...</option>
+                                {logic.listaCarreras.map((c: any, index: number) => (
+                                    <option key={index} value={c.NombreCarrera}>{c.NombreCarrera}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
                             <label>Observaciones</label>
                             <textarea name="observaciones" rows={2} className="input-field" value={logic.formData.observaciones} onChange={logic.handleChange}></textarea>
                         </div>

@@ -1,5 +1,6 @@
-import { Router } from 'express';
+import { Router, NextFunction } from 'express';
 import { getConnection, sql } from '../database.js';
+import { validateId } from '../middleware/validateId.js';
 
 const router = Router();
 
@@ -62,8 +63,7 @@ try {
         }
         res.json({ mensaje: 'Maestro y horario registrados correctamente.' });
     } catch (error: any) {
-        console.error("Error al registrar maestro completo:", error);
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
@@ -103,7 +103,7 @@ router.get('/buscar/:matricula', async (req, res) => {
         });
 
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
@@ -155,8 +155,7 @@ router.get('/carga', async (req, res) => {
 
         res.json(payload);
     } catch (error: any) {
-        console.error("Error en carga:", error);
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
@@ -199,12 +198,12 @@ router.post('/agregar-materia', async (req, res) => {
 
         res.json({ mensaje: "Materia guardada correctamente" });
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
 // 5. Eliminar materia
-router.delete('/eliminar-materia/:id', async (req, res) => {
+router.delete('/eliminar-materia/:id', validateId('id'), async (req, res, next: NextFunction) => {
     try {
         const { id } = req.params;
         const pool = await getConnection();
@@ -216,12 +215,12 @@ router.delete('/eliminar-materia/:id', async (req, res) => {
             `);
         res.json({ mensaje: "Materia eliminada" });
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
 // 6. Editar materia
-router.put('/editar-materia/:id', async (req, res) => {
+router.put('/editar-materia/:id', validateId('id'), async (req, res, next: NextFunction) => {
     try {
         const idAsignatura = req.params.id;
         const { materia, horaInicio, horaFin, dias, semestre, grupo, carrera, salon } = req.body;
@@ -283,12 +282,12 @@ router.put('/editar-materia/:id', async (req, res) => {
 
         res.json({ mensaje: "Materia actualizada correctamente" });
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
 // 7. Cambiar estado
-router.put('/estado/:idMaestro', async (req, res) => {
+router.put('/estado/:idMaestro', validateId('idMaestro'), async (req, res, next: NextFunction) => {
     try {
         const { idMaestro } = req.params;
         const { estado } = req.body; 
@@ -302,7 +301,7 @@ router.put('/estado/:idMaestro', async (req, res) => {
             `);
         res.json({ mensaje: "Estado actualizado" });
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
+import { API_URL } from '../../config';
 
 // Definimos la interfaz de tus datos
 export interface UserData {
@@ -38,13 +39,12 @@ export const useRegistroUsuario = (initialMatricula?: string | null) => {
 // --- EFECTOS ---
     useEffect(() => {
         // Cargar Carreras
-        fetch('http://localhost:3000/api/carreras')
+        fetch(`${API_URL}/api/carreras`)
             .then(res => res.json())
             .then(data => setListaCarreras(data))
             .catch(err => console.error("Error cargando carreras:", err));
 
-        // NUEVO: Cargar Letras de Grupos
-        fetch('http://localhost:3000/api/grupos-letras')
+        fetch(`${API_URL}/api/grupos-letras`)
             .then(res => res.json())
             .then(data => setListaLetrasGrupo(data))
             .catch(err => console.error("Error cargando grupos:", err));
@@ -107,7 +107,7 @@ export const useRegistroUsuario = (initialMatricula?: string | null) => {
         if (!targetMatricula) return;
         
         try {
-            const res = await fetch(`http://localhost:3000/api/usuarios/${targetMatricula}`);
+            const res = await fetch(`${API_URL}/api/usuarios/${targetMatricula}`);
             if (res.ok) {
                 const data = await res.json();
                 setFormData({
@@ -199,7 +199,7 @@ export const useRegistroUsuario = (initialMatricula?: string | null) => {
                 fotoBase64: imgSrc,
                 statusAcceso: accessStatus
             };
-            const respuesta = await fetch('http://localhost:3000/api/usuarios/crear', {
+            const respuesta = await fetch(`${API_URL}/api/usuarios/crear`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosParaEnviar)

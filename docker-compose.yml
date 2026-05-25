@@ -1,0 +1,50 @@
+services:
+
+  sql_server_uat:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_server_uat
+    environment:
+      SA_PASSWORD: "Servicio@2024"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+  node_backend_uat:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: node_backend_uat
+    environment:
+      DB_USER: admin_bd
+      DB_PASSWORD: servicio
+      DB_SERVER: sql_server_uat
+      DB_NAME: CTIRECEPDB
+      DB_INSTANCE: ""
+      PORT: 3000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - sql_server_uat
+    restart: unless-stopped
+
+  react_frontend_uat:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: http://localhost:3000
+    container_name: react_frontend_uat
+    ports:
+      - "80:80"
+    depends_on:
+      - node_backend_uat
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+    driver: local

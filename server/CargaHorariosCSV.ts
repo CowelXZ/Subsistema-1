@@ -8,6 +8,11 @@ router.post('/', async (req, res) => {
         const { datos } = req.body;
         if (!datos || datos.length === 0) return res.status(400).json({ mensaje: "CSV vacío." });
 
+        const MAX_REGISTROS = 1000;
+        if (datos.length > MAX_REGISTROS) {
+            return res.status(400).json({ mensaje: `El archivo excede el límite de ${MAX_REGISTROS} horarios por carga.` });
+        }
+
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");
 
@@ -76,7 +81,8 @@ router.post('/', async (req, res) => {
         }
         res.status(200).json({ mensaje: `Carga exitosa. Insertados: ${insertados}. Errores: ${errores}` });
     } catch (error: any) {
-        res.status(500).json({ mensaje: error.message });
+        console.error("Error en carga masiva de horarios:", error);
+        res.status(500).json({ mensaje: "Error interno al procesar la carga. Contacta al administrador." });
     }
 });
 

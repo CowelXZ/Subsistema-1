@@ -1,6 +1,7 @@
 // server/routes/alumnos.ts
-import { Router } from 'express';
+import { Router, NextFunction } from 'express';
 import { getConnection, sql } from '../database.js';
+import { validateId } from '../middleware/validateId.js';
 
 const router = Router();
 
@@ -63,13 +64,12 @@ router.get('/grupos', async (req, res) => {
         const payload = Array.from(gruposMap.values());
         res.json(payload);
     } catch (error: any) {
-        console.error("Error al obtener grupos y alumnos:", error);
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
 // 2. ELIMINAR (Desvincular) a un alumno del grupo
-router.delete('/alumnos/:id', async (req, res) => {
+router.delete('/alumnos/:id', validateId('id'), async (req, res, next: NextFunction) => {
     try {
         const { id } = req.params;
         const pool = await getConnection();
@@ -81,12 +81,12 @@ router.delete('/alumnos/:id', async (req, res) => {
 
         res.json({ mensaje: "Alumno desvinculado exitosamente." });
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
 // 3. NUEVO: CAMBIAR ESTADO DE UN ALUMNO (Individual)
-router.put('/alumnos/:id/estado', async (req, res) => {
+router.put('/alumnos/:id/estado', validateId('id'), async (req, res, next: NextFunction) => {
     try {
         const { id } = req.params;
         const { estado } = req.body; // Recibe 1 o 0
@@ -99,12 +99,12 @@ router.put('/alumnos/:id/estado', async (req, res) => {
 
         res.json({ mensaje: "Estado del alumno actualizado." });
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 
 // 4. NUEVO: CAMBIAR ESTADO DEL GRUPO (MASIVO)
-router.put('/grupos/:id/estado', async (req, res) => {
+router.put('/grupos/:id/estado', validateId('id'), async (req, res, next: NextFunction) => {
     try {
         const { id } = req.params;
         const { estado } = req.body;
@@ -121,7 +121,7 @@ router.put('/grupos/:id/estado', async (req, res) => {
 
         res.json({ mensaje: "Estado del grupo y sus alumnos actualizado masivamente." });
     } catch (error: any) {
-        res.status(500).send(error.message);
+        next(error);
     }
 });
 

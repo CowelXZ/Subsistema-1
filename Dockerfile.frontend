@@ -1,0 +1,33 @@
+# =============================================
+# Dockerfile — Frontend (React + Vite → Nginx)
+# =============================================
+
+# Etapa 1: Build del proyecto React
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --ignore-scripts
+
+COPY . .
+
+# La URL del backend se inyecta en tiempo de build
+# En producción local la IP del backend es el mismo host en puerto 3000
+ARG VITE_API_URL=http://localhost:3000
+ENV VITE_API_URL=$VITE_API_URL
+
+# Build de producción
+RUN npm run build
+
+# =============================================
+# Etapa 2: Servir con Nginx
+# =============================================
+FROM nginx:alpine
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

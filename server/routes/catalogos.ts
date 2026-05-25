@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, NextFunction } from 'express';
 import { getConnection, sql } from '../database.js';
 
 const router = Router();
@@ -19,7 +19,7 @@ router.get('/carreras', async (req, res) => {
             ) AS SubConsulta
         `);
         res.json(result?.recordset);
-    } catch (error: any) { res.status(500).send(error.message); }
+    } catch (error: any) { next(error); }
 });
 
 // 2. Semestres (VERSIÓN CORREGIDA: Sin alias, como lo espera el frontend)
@@ -33,7 +33,7 @@ router.get('/semestres', async (req, res) => {
             ORDER BY Semestre ASC
         `);
         res.json(result?.recordset);
-    } catch (error: any) { res.status(500).send(error.message); }
+    } catch (error: any) { next(error); }
 });
 
 // 3. Áreas (Esta sí tiene su propia tabla)
@@ -42,7 +42,7 @@ router.get('/areas', async (req, res) => {
         const pool = await getConnection();
         const result = await pool?.request().query('SELECT idArea, Area, Observaciones FROM Areas WHERE Activo = 1');
         res.json(result?.recordset);
-    } catch (error: any) { res.status(500).send(error.message); }
+    } catch (error: any) { next(error); }
 });
 
 // 4. Letras de Grupos (A, B, C...)
@@ -56,7 +56,7 @@ router.get('/grupos-letras', async (req, res) => {
             ORDER BY Grupo ASC
         `);
         res.json(result?.recordset);
-    } catch (error: any) { res.status(500).send(error.message); }
+    } catch (error: any) { next(error); }
 });
 
 // 5. Materias (Desde la tabla Asignaturas)
@@ -70,7 +70,7 @@ router.get('/materias', async (req, res) => {
             ORDER BY Materia ASC
         `);
         res.json(result?.recordset);
-    } catch (error: any) { res.status(500).send(error.message); }
+    } catch (error: any) { next(error); }
 });
 
 export default router;
