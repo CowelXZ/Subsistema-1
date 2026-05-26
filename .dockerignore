@@ -17,3 +17,9 @@ npm-debug.log*
 .vscode
 .idea
 .DS_Store
+
+# No incluir archivos SQL de administración de BD en el contexto de build
+# Estos archivos se usan MANUALMENTE desde fuera del contenedor con docker exec/cp
+# NO deben entrar dentro de ninguna imagen Docker
+MegaScript.sql        # Script oficial de inicialización (~220 MB) — ejecutar con docker exec
+Para Docker BD.txt    # Referencia de análisis únicamente — NO es el script oficial de despliegue

@@ -8,10 +8,22 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_PID: "Express"
     ports:
-      - "1434:1433"
+      - "1434:1433"   # Puerto externo 1434 → interno 1433 (el backend usa 1433 interno)
     volumes:
       - sqlserver_data:/var/opt/mssql
     restart: unless-stopped
+    # ── Healthcheck real: espera que SQL Server acepte conexiones TCP ──
+    # Usa la ruta correcta de sqlcmd en SQL Server 2022 (mssql-tools18)
+    # -C confía en el certificado autofirmado del contenedor
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Servicio@2024' -C -Q 'SELECT 1' || exit 1"
+      ]
+      interval: 15s      # Verificar cada 15 segundos
+      timeout: 10s       # Tiempo máximo por intento
+      retries: 8         # Hasta 8 intentos (= ~2 minutos de espera total)
+      start_period: 30s  # No contar fallos durante los primeros 30s de inicio
 
   node_backend_uat:
     build:
@@ -19,17 +31,18 @@ services:
       dockerfile: Dockerfile.backend
     container_name: node_backend_uat
     environment:
-      DB_USER: admin_bd
-      DB_PASSWORD: servicio
-      DB_SERVER: sql_server_uat
+      DB_USER: admin_bd         # Login de aplicación (creado por Para Docker BD.txt)
+      DB_PASSWORD: servicio     # Contraseña del login admin_bd (≠ contraseña de sa)
+      DB_SERVER: sql_server_uat # Nombre del servicio Docker — DNS interno (NO usar localhost)
       DB_NAME: CTIRECEPDB
-      DB_INSTANCE: ""
+      DB_INSTANCE: ""           # VACÍO en Docker — en Docker se conecta por puerto 1433, sin instancia nombrada
       PORT: 3000
       NODE_ENV: production
     ports:
       - "3000:3000"
     depends_on:
-      - sql_server_uat
+      sql_server_uat:
+        condition: service_healthy  # Espera el healthcheck real, no solo que el contenedor exista
     restart: unless-stopped
 
   react_frontend_uat:
@@ -37,6 +50,9 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
+        # La URL del backend se inyecta en tiempo de build.
+        # Con localhost funciona cuando el navegador está en la MISMA máquina que Docker.
+        # Si se accede desde otra PC en la red, cambiar a la IP de la máquina host.
         VITE_API_URL: http://localhost:3000
     container_name: react_frontend_uat
     ports:
