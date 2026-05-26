@@ -3,6 +3,28 @@ import { getConnection, sql } from './database.js';
 
 const router = Router();
 
+// PASO 1 — Helper: resuelve un campo de la fila tolerando diferencias de casing
+// y guiones bajos en el nombre de la columna del CSV (ej. "nombre_maestro" ≡ "Nombre_Maestro").
+function normalizarClave(clave: string): string {
+    return clave.toLowerCase().replace(/[_\s]/g, '');
+}
+
+function getValor(fila: Record<string, any>, campoEsperado: string): string {
+    // Primero intento exacto (el más rápido)
+    if (fila[campoEsperado] !== undefined && fila[campoEsperado] !== null) {
+        return String(fila[campoEsperado]).trim();
+    }
+    // Si falla, busco por clave normalizada (case-insensitive, sin guiones)
+    const claveNorm = normalizarClave(campoEsperado);
+    for (const key of Object.keys(fila)) {
+        if (normalizarClave(key) === claveNorm) {
+            const val = fila[key];
+            return val !== undefined && val !== null ? String(val).trim() : '';
+        }
+    }
+    return '';
+}
+
 // Endpoint: POST /api/csv/materias
 router.post('/', async (req, res) => {
     try {
@@ -22,49 +44,59 @@ router.post('/', async (req, res) => {
 
         let insertados = 0;
         let errores = 0;
+        // PASO 4 — Acumulador de errores por fila con detalle
+        const erroresDetalle: { fila: number; materia: string; motivo: string }[] = [];
 
-        // Iteramos sobre cada fila del Excel
-        for (const fila of datos) {
-            // Escudo contra filas fantasma
-            if (!fila.Materia || fila.Materia.trim() === '') {
-                continue; 
-            }
+        for (let i = 0; i < datos.length; i++) {
+            const fila = datos[i];
+
+            // PASO 2 — Leer campos con getValor (trim + clave normalizada)
+            const materia = getValor(fila, 'Materia');
+            if (!materia) continue; // Fila fantasma: se omite silenciosamente
+
+            const nombreMaestro  = getValor(fila, 'Nombre_Maestro');
+            const apellidoPaterno = getValor(fila, 'Apellido_Paterno');
+            const apellidoMaterno = getValor(fila, 'Apellido_Materno');
+            const carrera        = getValor(fila, 'Carrera');
+            const semestreNum    = parseInt(getValor(fila, 'Semestre')) || 1;
+            const grupoLetra     = getValor(fila, 'Grupo');
 
             try {
-                // --- PASO 1: Buscar al Maestro para obtener su idMaestro ---
+                // PASO 3 — Query de maestro con COLLATE CI_AI: tolerante a
+                // diferencias de acentos (García ≡ Garcia) y mayúsculas.
                 const resultMaestro = await pool.request()
-                    .input('nombre', sql.VarChar, fila.Nombre_Maestro)
-                    .input('paterno', sql.VarChar, fila.Apellido_Paterno)
-                    .input('materno', sql.VarChar, fila.Apellido_Materno || '')
+                    .input('nombre',  sql.VarChar, nombreMaestro)
+                    .input('paterno', sql.VarChar, apellidoPaterno)
+                    .input('materno', sql.VarChar, apellidoMaterno)
                     .query(`
-                        SELECT idMaestro FROM Maestros 
-                        WHERE Nombre = @nombre 
-                        AND ApellidoPaterno = @paterno 
-                        AND ISNULL(ApellidoMaterno, '') = @materno
+                        SELECT idMaestro FROM Maestros
+                        WHERE  Nombre           COLLATE SQL_Latin1_General_CP1_CI_AI = @nombre
+                          AND  ApellidoPaterno  COLLATE SQL_Latin1_General_CP1_CI_AI = @paterno
+                          AND  ISNULL(ApellidoMaterno, '') COLLATE SQL_Latin1_General_CP1_CI_AI = @materno
+                          AND  Activo = 1
                     `);
 
                 if (resultMaestro.recordset.length === 0) {
-                    console.error(`Error: Maestro no encontrado -> ${fila.Nombre_Maestro} ${fila.Apellido_Paterno}`);
+                    const motivo = `Maestro "${nombreMaestro} ${apellidoPaterno}" no encontrado en la BD`;
+                    console.error(`Fila ${i + 2}: ${motivo}`);
+                    erroresDetalle.push({ fila: i + 2, materia, motivo });
                     errores++;
-                    continue; // Saltamos esta materia porque no podemos dejarla huérfana
+                    continue;
                 }
 
-                const idMaestro = resultMaestro.recordset[0].idMaestro;
-                const nombreCompleto = `${fila.Nombre_Maestro} ${fila.Apellido_Paterno} ${fila.Apellido_Materno || ''}`.trim();
+                const idMaestro      = resultMaestro.recordset[0].idMaestro;
+                const nombreCompleto = `${nombreMaestro} ${apellidoPaterno} ${apellidoMaterno}`.trim();
 
-                // --- PASO 2: Lógica inteligente para Grupos (Buscar o Crear) ---
-                const semestreNum = parseInt(fila.Semestre) || 1;
-                
+                // Buscar o crear Grupo (lógica original intacta)
                 const resultGrupo = await pool.request()
-                    .input('grupo', sql.Char, fila.Grupo)
-                    .input('semestre', sql.Int, semestreNum)
-                    .input('carrera', sql.VarChar, fila.Carrera)
+                    .input('grupo',    sql.Char,    grupoLetra)
+                    .input('semestre', sql.Int,     semestreNum)
+                    .input('carrera',  sql.VarChar, carrera)
                     .query(`
                         DECLARE @idgrupo INT;
-                        SELECT @idgrupo = idgrupo FROM Grupos 
+                        SELECT @idgrupo = idgrupo FROM Grupos
                         WHERE Grupo = @grupo AND Semestre = @semestre AND Carrera = @carrera;
 
-                        -- Si el grupo no existe, lo creamos
                         IF @idgrupo IS NULL
                         BEGIN
                             INSERT INTO Grupos (Grupo, Salon, Carrera, Semestre, Activo)
@@ -74,29 +106,35 @@ router.post('/', async (req, res) => {
 
                         SELECT @idgrupo AS idgrupo;
                     `);
-                
+
                 const idGrupo = resultGrupo.recordset[0].idgrupo;
 
-                // --- PASO 3: Insertar finalmente en la tabla Asignaturas ---
+                // Insertar en Asignaturas (lógica original intacta)
                 await pool.request()
-                    .input('materia', sql.VarChar, fila.Materia)
-                    .input('nombreMaestro', sql.VarChar, nombreCompleto) // Por si aún usas esa columna
-                    .input('idgrupo', sql.Int, idGrupo)
-                    .input('idMaestro', sql.Int, idMaestro)
+                    .input('materia',      sql.VarChar, materia)
+                    .input('nombreMaestro', sql.VarChar, nombreCompleto)
+                    .input('idgrupo',      sql.Int,     idGrupo)
+                    .input('idMaestro',    sql.Int,     idMaestro)
                     .query(`
                         INSERT INTO Asignaturas (Materia, Maestro, idgrupo, idMaestro, activo)
                         VALUES (@materia, @nombreMaestro, @idgrupo, @idMaestro, 1);
                     `);
 
                 insertados++;
-            } catch (err) {
-                console.error(`Error al procesar la materia ${fila.Materia}:`, err);
+            } catch (err: any) {
+                const motivo = err?.message || 'Error inesperado al insertar';
+                console.error(`Fila ${i + 2}: Error en materia "${materia}":`, err);
+                erroresDetalle.push({ fila: i + 2, materia, motivo });
                 errores++;
             }
         }
 
-        res.status(200).json({ 
-            mensaje: `Carga finalizada exitosamente. Materias insertadas: ${insertados}. Errores: ${errores}.` 
+        // PASO 5 — Respuesta con contadores Y detalle de errores por fila
+        res.status(200).json({
+            mensaje: `Carga finalizada. Insertados: ${insertados}. Errores: ${errores}.`,
+            insertados,
+            errores,
+            erroresDetalle
         });
 
     } catch (error: any) {

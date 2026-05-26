@@ -16,7 +16,8 @@ import catalogosRouter from './routes/catalogos.js';
 // Cargas Masivas
 import rutasCargaAlumnos from './CargaAlumnosCSV.js';
 import rutasCargaMaestros from './CargaMaestrosCSV.js';
-import rutasCargaMaterias from './CargaMateriasCSV.js';
+// rutasCargaMaterias ocultado: redundante con rutasCargaHorarios (ver CargaMateriasCSV.ts)
+// import rutasCargaMaterias from './CargaMateriasCSV.js';
 import rutasCargaHorarios from './CargaHorariosCSV.js';
 
 const app = express();
@@ -72,9 +73,10 @@ app.use('/api/alumnos-admi', alumnosRouter);
 app.use('/api', catalogosRouter);
 
 // Rutas de Carga Masiva (CSV) — con rate limit propio
-app.use('/api/csv/alumnos', limiterCargaMasiva, rutasCargaAlumnos);
+app.use('/api/csv/alumnos',  limiterCargaMasiva, rutasCargaAlumnos);
 app.use('/api/csv/maestros', limiterCargaMasiva, rutasCargaMaestros);
-app.use('/api/csv/materias', limiterCargaMasiva, rutasCargaMaterias);
+// /api/csv/materias ocultado: redundante con /api/csv/horarios
+// app.use('/api/csv/materias', limiterCargaMasiva, rutasCargaMaterias);
 app.use('/api/csv/horarios', limiterCargaMasiva, rutasCargaHorarios);
 
 // --- Healthcheck interno (solo para Docker / uso local) ---

@@ -5,9 +5,10 @@ import './MenuDesplegable.css';
 import { API_URL } from '../../config';
 
 const columnasRequeridas: Record<string, string[]> = {
-    'Alumnos': ['Usuario', 'Nombre', 'ApellidoPaterno', 'ApellidoMaterno', 'Sexo', 'Ubicacion'],
+    'Alumnos': ['Usuario', 'Nombre', 'ApellidoPaterno', 'ApellidoMaterno', 'Sexo', 'Grupo', 'Semestre', 'Carrera'],
     'Maestros': ['Matricula', 'Nombre', 'ApellidoPaterno', 'ApellidoMaterno', 'Correo', 'Sexo'],
-    'Materias': ['Materia', 'Nombre_Maestro', 'Apellido_Paterno', 'Apellido_Materno', 'Carrera', 'Semestre', 'Grupo'],
+    // 'Materias' ocultado: redundante con CSV Horarios (que ya crea Asignaturas + Periodos + Horarios).
+    // 'Materias': ['Materia', 'Nombre_Maestro', 'Apellido_Paterno', 'Apellido_Materno', 'Carrera', 'Semestre', 'Grupo'],
     'Horarios': ['Materia', 'Nombre_Maestro', 'Apellido_Paterno', 'Apellido_Materno', 'Carrera', 'Semestre', 'Grupo', 'Hora_Inicio', 'Hora_Fin', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Salon']
 };
 
@@ -29,6 +30,7 @@ export const MenuDesplegable: React.FC<Props> = ({
     const [tipoCarga, setTipoCarga] = useState<string | null>(null);
     const [archivoCSV, setArchivoCSV] = useState<File | null>(null);
     const [mensaje, setMensaje] = useState<{ texto: string, tipo: 'error' | 'exito' } | null>(null);
+    const [erroresDetalle, setErroresDetalle] = useState<{ fila: number; materia: string; motivo: string }[]>([]);
     const [procesando, setProcesando] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [csvMenuAbierto, setCsvMenuAbierto] = useState(false); // <--- Nuestro estado del Acordeón
@@ -47,6 +49,7 @@ export const MenuDesplegable: React.FC<Props> = ({
         setTipoCarga(tipo);
         setArchivoCSV(null);
         setMensaje(null);
+        setErroresDetalle([]);
         setIsOpen(false);
     };
 
@@ -87,15 +90,22 @@ export const MenuDesplegable: React.FC<Props> = ({
         }
     };
 
+    const filaEjemplo: Record<string, string> = {
+        'Alumnos':  '220000001,Carlos,Ramirez,Lopez,M,B,2,Contador Publico',
+        'Maestros': 'M001,Juan,Perez,Garcia,juan.perez@test.com,M',
+        'Horarios': 'Matematicas,Juan,Perez,Garcia,Contador Publico,2,B,08:00,09:00,1,0,1,0,1,Laboratorio 1',
+    };
+
     const descargarPlantilla = () => {
         if (!tipoCarga || !columnasRequeridas[tipoCarga]) return;
-        const columnas = columnasRequeridas[tipoCarga];
-        const csvContent = '\uFEFF' + columnas.join(',');
+        const columnas  = columnasRequeridas[tipoCarga];
+        const ejemplo   = filaEjemplo[tipoCarga] ?? '';
+        const csvContent = '\uFEFF' + columnas.join(',') + (ejemplo ? '\r\n' + ejemplo : '');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `plantilla_${tipoCarga.toLowerCase()}.csv`);
+        const url  = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `plantilla_${tipoCarga.toLowerCase()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -122,7 +132,11 @@ export const MenuDesplegable: React.FC<Props> = ({
                     const data = await response.json();
                     if (response.ok) {
                         setMensaje({ texto: data.mensaje || "Carga masiva exitosa", tipo: "exito" });
+                        setErroresDetalle(data.erroresDetalle || []);
                         setArchivoCSV(null);
+                        // BUG #6 FIX: limpiar el input nativo para que el mismo archivo
+                        // pueda volver a seleccionarse sin refrescar la página
+                        if (fileInputRef.current) fileInputRef.current.value = '';
                     } else {
                         throw new Error(data.mensaje || "Error al procesar en el servidor");
                     }
@@ -191,10 +205,18 @@ export const MenuDesplegable: React.FC<Props> = ({
                             <ul className="menu-lateral-list submenu animate-fade-down">
                                 <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Alumnos')}><span className="material-icons">group_add</span> CSV Alumnos</button></li>
                                 <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Maestros')}><span className="material-icons">person_add_alt_1</span> CSV Maestros</button></li>
-                                <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Materias')}><span className="material-icons">library_books</span> CSV Materias</button></li>
+                                {/* CSV Materias ocultado: redundante con CSV Horarios */}
+                                {/* <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Materias')}><span className="material-icons">library_books</span> CSV Materias</button></li> */}
                                 <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Horarios')}><span className="material-icons">edit_calendar</span> CSV Horarios</button></li>
                             </ul>
                         )}
+                        {csvMenuAbierto && (
+                            <p style={{ margin: '8px 5px 0', fontSize: '0.75rem', color: '#888', lineHeight: '1.4' }}>
+                                <span className="material-icons" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: '4px' }}>info</span>
+                                Orden recomendado: primero Maestros, después Horarios. Alumnos puede cargarse por separado.
+                            </p>
+                        )}
+
                     </div>
                 </div>
             </aside>
@@ -231,8 +253,21 @@ export const MenuDesplegable: React.FC<Props> = ({
                         </div>
 
                         {mensaje && (
-                            <div style={{ padding: '10px', marginBottom: '15px', borderRadius: '5px', backgroundColor: mensaje.tipo === 'error' ? '#ffebee' : '#e8f5e9', color: mensaje.tipo === 'error' ? '#c62828' : '#2e7d32', fontWeight: 'bold', textAlign: 'center' }}>
+                            <div style={{ padding: '10px', marginBottom: erroresDetalle.length > 0 ? '8px' : '15px', borderRadius: '5px', backgroundColor: mensaje.tipo === 'error' ? '#ffebee' : '#e8f5e9', color: mensaje.tipo === 'error' ? '#c62828' : '#2e7d32', fontWeight: 'bold', textAlign: 'center' }}>
                                 {mensaje.texto}
+                            </div>
+                        )}
+
+                        {erroresDetalle.length > 0 && (
+                            <div style={{ marginBottom: '15px', borderRadius: '5px', border: '1px solid #ffcdd2', backgroundColor: '#fff8f8', padding: '10px 12px', maxHeight: '160px', overflowY: 'auto' }}>
+                                <p style={{ margin: '0 0 8px 0', fontSize: '0.8rem', fontWeight: 'bold', color: '#b71c1c' }}>Detalle de errores:</p>
+                                <ul style={{ margin: 0, padding: '0 0 0 16px', fontSize: '0.8rem', color: '#555', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    {erroresDetalle.map((e, idx) => (
+                                        <li key={idx}>
+                                            <strong>Fila {e.fila}</strong> — {e.materia}: {e.motivo}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
 
