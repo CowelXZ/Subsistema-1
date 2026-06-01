@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile.backend
     container_name: node_backend_uat
     environment:
-      DB_USER: admin_bd         # Login de aplicación (creado por Para Docker BD.txt)
+      DB_USER: admin_bd         # Login de aplicación (creado por MegaScript.sql)
       DB_PASSWORD: servicio     # Contraseña del login admin_bd (≠ contraseña de sa)
       DB_SERVER: sql_server_uat # Nombre del servicio Docker — DNS interno (NO usar localhost)
       DB_NAME: CTIRECEPDB
