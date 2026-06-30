@@ -11,6 +11,7 @@ interface Props {
     onNavigateToCarga: () => void;
     onNavigateToMaestros: () => void;
     onNavigateToAlumnos: () => void;
+    onNavigateToBitacora: () => void;
 }
 
 interface UsuarioData {
@@ -33,7 +34,8 @@ export const RegistroEntrada: React.FC<Props> = ({
     onNavigateToRegister,
     onNavigateToCarga,
     onNavigateToMaestros,
-    onNavigateToAlumnos
+    onNavigateToAlumnos,
+    onNavigateToBitacora
 }) => {
     const [codigoInput, setCodigoInput] = useState('');
     const [usuario, setUsuario] = useState<UsuarioData | null>(null);
@@ -124,6 +126,7 @@ export const RegistroEntrada: React.FC<Props> = ({
                             onNavigateToCarga={onNavigateToCarga}
                             onNavigateToMaestros={onNavigateToMaestros}
                             onNavigateToAlumnos={onNavigateToAlumnos}
+                            onNavigateToBitacora={onNavigateToBitacora}
                         />
                     ) : null
                 } 

@@ -18,6 +18,7 @@ interface Props {
     onNavigateToCarga?: () => void;
     onNavigateToMaestros?: () => void;
     onNavigateToAlumnos?: () => void;
+    onNavigateToBitacora?: () => void;
 }
 
 export const MenuDesplegable: React.FC<Props> = ({
@@ -25,7 +26,8 @@ export const MenuDesplegable: React.FC<Props> = ({
     onNavigateToRegister,
     onNavigateToCarga,
     onNavigateToMaestros,
-    onNavigateToAlumnos
+    onNavigateToAlumnos,
+    onNavigateToBitacora // <--- Asegurado aquí
 }) => {
     // --- ESTADOS ---
     const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +37,7 @@ export const MenuDesplegable: React.FC<Props> = ({
     const [erroresDetalle, setErroresDetalle] = useState<{ fila: number; materia: string; motivo: string }[]>([]);
     const [procesando, setProcesando] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [csvMenuAbierto, setCsvMenuAbierto] = useState(false); // <--- Nuestro estado del Acordeón
+    const [csvMenuAbierto, setCsvMenuAbierto] = useState(false);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -136,8 +138,6 @@ export const MenuDesplegable: React.FC<Props> = ({
                         setMensaje({ texto: data.mensaje || "Carga masiva exitosa", tipo: "exito" });
                         setErroresDetalle(data.erroresDetalle || []);
                         setArchivoCSV(null);
-                        // BUG #6 FIX: limpiar el input nativo para que el mismo archivo
-                        // pueda volver a seleccionarse sin refrescar la página
                         if (fileInputRef.current) fileInputRef.current.value = '';
                     } else {
                         throw new Error(data.mensaje || "Error al procesar en el servidor");
@@ -222,6 +222,28 @@ export const MenuDesplegable: React.FC<Props> = ({
                                         Orden recomendado: primero Maestros, después Horarios. Alumnos puede cargarse por separado.
                                     </p>
                                 )}
+                            </div>
+                        </>
+                        
+                    )}
+
+                    {/* --- BOTÓN FINAL DE BITÁCORA (SOLO ADMIN) --- */}
+                    {userRole === 'ADMIN' && (
+                        <>
+                            <hr className="menu-divider" />
+                            <div className="menu-section">
+                                <ul className="menu-lateral-list">
+                                    <li>
+                                        <button 
+                                            className="btn-lateral-option" 
+                                            style={{ backgroundColor: 'rgba(30, 41, 59, 0.1)', color: '#1e293b', fontWeight: 'bold' }}
+                                            onClick={() => handleNavigation(onNavigateToBitacora)}
+                                        >
+                                            <span className="material-icons">assignment_ind</span> 
+                                            Bitácora de Accesos
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
                         </>
                     )}

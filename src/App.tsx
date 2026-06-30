@@ -5,8 +5,9 @@ import { AsignacionCarga } from './components/AsignacionCargo/AsignacionCargo';
 import { RegistroMaestros } from './components/RegistroMaestros/RegistroMaestros';
 import { AlumnosAdmi } from './components/AlumnosAdmi/AlumnosAdmi';
 import { InicioSesion } from './components/InicioSesion/InicioSesion';
+import { BitacoraView } from './components/Bitacora/BitacoraView';
 
-type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos' | 'login';
+type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos' | 'login' | 'bitacora';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
@@ -43,6 +44,7 @@ function App() {
           onNavigateToMaestros={() => setCurrentScreen('maestros')}
           onNavigateToCarga={() => setCurrentScreen('carga')}
           onNavigateToAlumnos={() => setCurrentScreen('alumnos')}
+          onNavigateToBitacora={() => setCurrentScreen('bitacora')}
         />
       )}
 
@@ -56,6 +58,10 @@ function App() {
 
       {currentScreen === 'maestros' && (
         <RegistroMaestros onBack={goHome} />
+      )}
+
+      {currentScreen === 'bitacora' && (
+        <BitacoraView onBack={goHome} /> // <--- RENDERIZAR NUEVA VISTA
       )}
 
       {currentScreen === 'alumnos' && (
