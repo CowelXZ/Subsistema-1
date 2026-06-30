@@ -6,7 +6,7 @@ import { validateId } from '../middleware/validateId.js';
 const router = Router();
 
 // 1. OBTENER GRUPOS (Ahora trae tanto activos como inactivos)
-router.get('/grupos', async (req, res) => {
+router.get('/grupos', async (req, res, next: NextFunction) => {
     try {
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");

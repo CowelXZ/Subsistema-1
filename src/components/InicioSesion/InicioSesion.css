@@ -1,0 +1,128 @@
+
+.login-bg {
+    background-image: url('/img/bg.jpg'); 
+    background-color: #f1f5f9;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.login-logo-container {
+    position: absolute;
+    top: 40px;
+    left: 50px;
+    z-index: 10;
+}
+
+.login-logo-container.left { left: 50px; }
+.login-logo-container.right { right: 50px; }
+
+.login-logo {
+    height: 100px;
+    width: auto;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); 
+    transition: transform 0.3s ease;
+    border-radius: 8px;
+}
+
+.login-logo:hover {
+    transform: scale(1.05);
+}
+
+.login-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 420px;
+    height: max-content;
+    margin: auto;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    
+    /* --- EFECTO CRISTAL (MÁS TRANSPARENTE) --- */
+    background-color: rgba(255, 255, 255, 0.60); 
+    backdrop-filter: blur(24px); /* Aumentamos un poquito el blur para compensar la transparencia */
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.login-header { text-align: center; margin-bottom: 35px; }
+.login-icon { font-size: 4.5rem; color: var(--uat-guinda); margin-bottom: 15px; }
+.login-header h2 { color: var(--uat-guinda-dark); margin: 0 0 8px 0; font-size: 1.8rem; letter-spacing: 1px; }
+.login-header p { color: #1e293b; margin: 0; font-size: 0.95rem; font-weight: 600; }
+
+.login-form { display: flex; flex-direction: column; gap: 25px; }
+.form-group label { font-weight: 700; color: #0f172a; margin-bottom: 8px; display: inline-block; font-size: 0.9rem; }
+
+.input-with-icon { position: relative; display: flex; align-items: center; }
+.input-with-icon .input-icon { position: absolute; left: 15px; color: #64748b; font-size: 1.3rem; transition: color 0.3s; }
+
+.input-with-icon .input-field { 
+    width: 100%; 
+    padding-left: 45px; 
+    padding-right: 15px;
+    background-color: rgba(255, 255, 255, 0.85); 
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.input-with-icon .input-field:focus + .input-icon,
+.input-with-icon .input-field:focus ~ .input-icon { color: var(--uat-guinda); }
+
+.btn-enter.full-width { 
+    width: 100%; 
+    margin-top: 10px; 
+    padding: 16px; 
+    font-size: 1.1rem; 
+    display: flex; 
+    justify-content: center; 
+    border-radius: 8px; 
+    border: none; 
+    cursor: pointer; 
+    color: white; 
+    background-color: var(--uat-guinda); 
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.btn-enter.full-width:hover { background-color: var(--uat-guinda-dark); transform: translateY(-2px); }
+.btn-enter.full-width:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+.animate-fade-in { animation: fadeInLogin 0.5s ease-out forwards; }
+@keyframes fadeInLogin {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.password-field { padding-right: 45px !important; }
+.btn-toggle-password {
+    position: absolute; right: 10px; background: none; border: none;
+    color: #64748b; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; padding: 5px; transition: color 0.2s;
+}
+.btn-toggle-password:hover { color: var(--uat-guinda); }
+
+.rotating { animation: rotateIcon 1s linear infinite; }
+@keyframes rotateIcon {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.login-error-msg {
+    background-color: rgba(254, 226, 226, 0.95);
+    color: #b91c1c; padding: 10px 15px; border-radius: 8px; display: flex;
+    align-items: center; gap: 10px; margin-bottom: 20px; font-size: 0.9rem;
+    font-weight: 500; border: 1px solid #fca5a5;
+}

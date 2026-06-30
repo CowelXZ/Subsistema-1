@@ -13,6 +13,7 @@ const columnasRequeridas: Record<string, string[]> = {
 };
 
 interface Props {
+    userRole?: string | null;
     onNavigateToRegister?: () => void;
     onNavigateToCarga?: () => void;
     onNavigateToMaestros?: () => void;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export const MenuDesplegable: React.FC<Props> = ({
+    userRole,
     onNavigateToRegister,
     onNavigateToCarga,
     onNavigateToMaestros,
@@ -180,44 +182,49 @@ export const MenuDesplegable: React.FC<Props> = ({
                         <ul className="menu-lateral-list">
                             <li><button className="btn-lateral-option" onClick={() => handleNavigation(onNavigateToRegister)}><span className="material-icons">person_add</span> Registrar Alumno</button></li>
                             <li><button className="btn-lateral-option" onClick={() => handleNavigation(onNavigateToMaestros)}><span className="material-icons">school</span> Registrar Maestro</button></li>
-                            <li><button className="btn-lateral-option orange-variant" onClick={() => handleNavigation(onNavigateToCarga)}><span className="material-icons">admin_panel_settings</span> Adm. Maestros</button></li>
-                            <li><button className="btn-lateral-option orange-variant" onClick={() => handleNavigation(onNavigateToAlumnos)}><span className="material-icons">groups</span> Adm. Alumnos</button></li>
+                            
+                            {/* ESTOS DOS BOTONES SOLO LOS VERÁ EL ADMIN */}
+                            {userRole === 'ADMIN' && (
+                                <>
+                                    <li><button className="btn-lateral-option orange-variant" onClick={() => handleNavigation(onNavigateToCarga)}><span className="material-icons">admin_panel_settings</span> Adm. Maestros</button></li>
+                                    <li><button className="btn-lateral-option orange-variant" onClick={() => handleNavigation(onNavigateToAlumnos)}><span className="material-icons">groups</span> Adm. Alumnos</button></li>
+                                </>
+                            )}
                         </ul>
                     </div>
 
-                    <hr className="menu-divider" />
+                    {/* TODA LA SECCIÓN DE CARGA MASIVA CSV SOLO LA VERÁ EL ADMIN */}
+                    {userRole === 'ADMIN' && (
+                        <>
+                            <hr className="menu-divider" />
 
-                    {/* --- SECCIÓN 2: CARGA DE ARCHIVOS (SUBMENÚ DESPLEGABLE) --- */}
-                    <div className="menu-section">
-                        {/* Cabecera Clickable */}
-                        <div 
-                            className="menu-section-header clickable" 
-                            onClick={() => setCsvMenuAbierto(!csvMenuAbierto)}
-                        >
-                            <h3 className="menu-section-title" style={{ margin: 0 }}>Carga Masiva CSV</h3>
-                            <span className="material-icons dropdown-icon">
-                                {csvMenuAbierto ? 'expand_less' : 'expand_more'}
-                            </span>
-                        </div>
+                            <div className="menu-section">
+                                <div 
+                                    className="menu-section-header clickable" 
+                                    onClick={() => setCsvMenuAbierto(!csvMenuAbierto)}
+                                >
+                                    <h3 className="menu-section-title" style={{ margin: 0 }}>Carga Masiva CSV</h3>
+                                    <span className="material-icons dropdown-icon">
+                                        {csvMenuAbierto ? 'expand_less' : 'expand_more'}
+                                    </span>
+                                </div>
 
-                        {/* Lista Desplegable */}
-                        {csvMenuAbierto && (
-                            <ul className="menu-lateral-list submenu animate-fade-down">
-                                <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Alumnos')}><span className="material-icons">group_add</span> CSV Alumnos</button></li>
-                                <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Maestros')}><span className="material-icons">person_add_alt_1</span> CSV Maestros</button></li>
-                                {/* CSV Materias ocultado: redundante con CSV Horarios */}
-                                {/* <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Materias')}><span className="material-icons">library_books</span> CSV Materias</button></li> */}
-                                <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Horarios')}><span className="material-icons">edit_calendar</span> CSV Horarios</button></li>
-                            </ul>
-                        )}
-                        {csvMenuAbierto && (
-                            <p style={{ margin: '8px 5px 0', fontSize: '0.75rem', color: '#888', lineHeight: '1.4' }}>
-                                <span className="material-icons" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: '4px' }}>info</span>
-                                Orden recomendado: primero Maestros, después Horarios. Alumnos puede cargarse por separado.
-                            </p>
-                        )}
-
-                    </div>
+                                {csvMenuAbierto && (
+                                    <ul className="menu-lateral-list submenu animate-fade-down">
+                                        <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Alumnos')}><span className="material-icons">group_add</span> CSV Alumnos</button></li>
+                                        <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Maestros')}><span className="material-icons">person_add_alt_1</span> CSV Maestros</button></li>
+                                        <li><button className="btn-lateral-option submenu-btn" onClick={() => abrirModalCarga('Horarios')}><span className="material-icons">edit_calendar</span> CSV Horarios</button></li>
+                                    </ul>
+                                )}
+                                {csvMenuAbierto && (
+                                    <p style={{ margin: '8px 5px 0', fontSize: '0.75rem', color: '#888', lineHeight: '1.4' }}>
+                                        <span className="material-icons" style={{ fontSize: '0.85rem', verticalAlign: 'middle', marginRight: '4px' }}>info</span>
+                                        Orden recomendado: primero Maestros, después Horarios. Alumnos puede cargarse por separado.
+                                    </p>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </aside>
 

@@ -5,6 +5,8 @@ import { MenuDesplegable } from "../common/MenuDesplegable";
 import { API_URL } from '../../config';
 
 interface Props {
+    userRole: string | null;
+    onLogout: () => void;
     onNavigateToRegister: () => void;
     onNavigateToCarga: () => void;
     onNavigateToMaestros: () => void;
@@ -26,6 +28,8 @@ interface UsuarioData {
 }
 
 export const RegistroEntrada: React.FC<Props> = ({
+    userRole,
+    onLogout,
     onNavigateToRegister,
     onNavigateToCarga,
     onNavigateToMaestros,
@@ -110,14 +114,18 @@ export const RegistroEntrada: React.FC<Props> = ({
     return (
         <div className="main-wrapper">
             <Header 
-                titulo="CONTROL DE ACCESO E IDENTIFICACIÓN" 
+                titulo="CONTROL DE ACCESO E IDENTIFICACIÓN"
+                onLogout={onLogout}
                 rightAction={
-                    <MenuDesplegable 
-                        onNavigateToRegister={onNavigateToRegister}
-                        onNavigateToCarga={onNavigateToCarga}
-                        onNavigateToMaestros={onNavigateToMaestros}
-                        onNavigateToAlumnos={onNavigateToAlumnos}
-                    />
+                    userRole !== 'OPERADOR' ? (
+                        <MenuDesplegable
+                            userRole={userRole}
+                            onNavigateToRegister={onNavigateToRegister}
+                            onNavigateToCarga={onNavigateToCarga}
+                            onNavigateToMaestros={onNavigateToMaestros}
+                            onNavigateToAlumnos={onNavigateToAlumnos}
+                        />
+                    ) : null
                 } 
             />
             <main className="main-centered">

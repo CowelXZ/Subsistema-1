@@ -4,26 +4,41 @@ import { RegistroEntrada } from './components/RegistroEntrada/RegistroEntrada';
 import { AsignacionCarga } from './components/AsignacionCargo/AsignacionCargo';
 import { RegistroMaestros } from './components/RegistroMaestros/RegistroMaestros';
 import { AlumnosAdmi } from './components/AlumnosAdmi/AlumnosAdmi';
+import { InicioSesion } from './components/InicioSesion/InicioSesion';
 
-type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos';
+type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos' | 'login';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('entrada');
-
-  // NUEVO: Estado para guardar la matrícula que vamos a editar
+  const [currentScreen, setCurrentScreen] = useState<Screen>('login');
   const [matriculaEdit, setMatriculaEdit] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-  // Función común para volver al inicio
   const goHome = () => {
-    setMatriculaEdit(null); // Limpiamos la matrícula al salir
+    setMatriculaEdit(null); 
     setCurrentScreen('entrada');
+  };
+
+  const handleLogout = () => {
+    setUserRole(null);
+    setCurrentScreen('login');
   };
 
   return (
     <div className="App">
 
+      {currentScreen === 'login' && (
+        <InicioSesion 
+           onLoginSuccess={(rol) => {
+               setUserRole(rol);
+               setCurrentScreen('entrada');
+           }} 
+        />
+      )}
+
       {currentScreen === 'entrada' && (
         <RegistroEntrada
+          userRole={userRole}
+          onLogout={handleLogout}
           onNavigateToRegister={() => { setMatriculaEdit(null); setCurrentScreen('registro'); }}
           onNavigateToMaestros={() => setCurrentScreen('maestros')}
           onNavigateToCarga={() => setCurrentScreen('carga')}
@@ -32,10 +47,7 @@ function App() {
       )}
 
       {currentScreen === 'registro' && (
-        <RegistroUsuario
-          onBack={goHome}
-          initialMatricula={matriculaEdit} // <-- Le pasamos la matrícula a la pantalla
-        />
+        <RegistroUsuario onBack={goHome} initialMatricula={matriculaEdit} />
       )}
 
       {currentScreen === 'carga' && (
@@ -50,7 +62,6 @@ function App() {
         <AlumnosAdmi
           onBack={goHome}
           onEditAlumno={(matricula) => {
-            // Cuando le den clic a editar, guardamos la matrícula y cambiamos de pantalla
             setMatriculaEdit(matricula);
             setCurrentScreen('registro');
           }}

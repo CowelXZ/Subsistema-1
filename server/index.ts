@@ -1,3 +1,4 @@
+import authRoutes from './routes/auth';
 import dotenv from 'dotenv';
 dotenv.config({ override: false }); // En Docker, las env vars vienen del docker-compose (no sobreescribir)
 import express from 'express';
@@ -64,6 +65,7 @@ const limiterCargaMasiva = rateLimit({
     message: { error: 'Límite de cargas masivas alcanzado. Intenta en una hora.' },
 });
 
+app.use('/api/auth', authRoutes);
 app.use(limiterGeneral);
 
 // --- CONEXIÓN DE RUTAS MODULARES ---
