@@ -12,6 +12,7 @@ interface Props {
     onNavigateToMaestros: () => void;
     onNavigateToAlumnos: () => void;
     onNavigateToBitacora: () => void;
+    onNavigateToReportes: () => void;
 }
 
 interface UsuarioData {
@@ -35,7 +36,8 @@ export const RegistroEntrada: React.FC<Props> = ({
     onNavigateToCarga,
     onNavigateToMaestros,
     onNavigateToAlumnos,
-    onNavigateToBitacora
+    onNavigateToBitacora,
+    onNavigateToReportes
 }) => {
     const [codigoInput, setCodigoInput] = useState('');
     const [usuario, setUsuario] = useState<UsuarioData | null>(null);
@@ -101,6 +103,31 @@ export const RegistroEntrada: React.FC<Props> = ({
 
                 setUsuario(usuarioEncontrado);
                 setMensaje('');
+                // ... (tu código actual) ...
+                setUsuario(usuarioEncontrado);
+                setMensaje('');
+
+                // --- NUEVO: GUARDAR EL ESCANEO EN EL HISTORIAL (EN SEGUNDO PLANO) ---
+                try {
+                    await fetch(`${API_URL}/api/reportes/registrar`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            matricula: usuarioEncontrado.codigo,
+                            nombreCompleto: usuarioEncontrado.nombreCompleto,
+                            tipoUsuario: usuarioEncontrado.puesto,
+                            materiaDestino: usuarioEncontrado.materiaActual,
+                            grupoDestino: usuarioEncontrado.grupo,
+                            maestroAsignado: usuarioEncontrado.maestroActual,
+                            aulaDestino: usuarioEncontrado.aulaActual,
+                            estatusAcceso: usuarioEncontrado.statusAcceso
+                        })
+                    });
+                } catch (err) {
+                    console.error("Error al guardar historial silencioso:", err);
+                }
+                // --- FIN DE LO NUEVO ---
+
             } else {
                 setUsuario(null);
                 setMensaje('❌ USUARIO NO ENCONTRADO');
@@ -127,6 +154,7 @@ export const RegistroEntrada: React.FC<Props> = ({
                             onNavigateToMaestros={onNavigateToMaestros}
                             onNavigateToAlumnos={onNavigateToAlumnos}
                             onNavigateToBitacora={onNavigateToBitacora}
+                            onNavigateToReportes={onNavigateToReportes}
                         />
                     ) : null
                 } 

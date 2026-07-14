@@ -19,6 +19,7 @@ interface Props {
     onNavigateToMaestros?: () => void;
     onNavigateToAlumnos?: () => void;
     onNavigateToBitacora?: () => void;
+    onNavigateToReportes?: () => void; // <--- AÑADIDO: Propiedad para los reportes
 }
 
 export const MenuDesplegable: React.FC<Props> = ({
@@ -27,7 +28,8 @@ export const MenuDesplegable: React.FC<Props> = ({
     onNavigateToCarga,
     onNavigateToMaestros,
     onNavigateToAlumnos,
-    onNavigateToBitacora // <--- Asegurado aquí
+    onNavigateToBitacora, 
+    onNavigateToReportes // <--- AÑADIDO: Recepción de la propiedad
 }) => {
     // --- ESTADOS ---
     const [isOpen, setIsOpen] = useState(false);
@@ -192,6 +194,27 @@ export const MenuDesplegable: React.FC<Props> = ({
                             )}
                         </ul>
                     </div>
+
+                    {/* --- AÑADIDO: SECCIÓN 2: REPORTES Y ASISTENCIAS (ADMIN Y SUPERVISOR) --- */}
+                    {(userRole === 'ADMIN' || userRole === 'SUPERVISOR') && (
+                        <>
+                            <hr className="menu-divider" />
+                            <div className="menu-section">
+                                <h3 className="menu-section-title">Control y Asistencia</h3>
+                                <ul className="menu-lateral-list">
+                                    <li>
+                                        <button 
+                                            className="btn-lateral-option" 
+                                            onClick={() => handleNavigation(onNavigateToReportes)}
+                                        >
+                                            <span className="material-icons">fact_check</span> 
+                                            Reportes de Escaneos
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </>
+                    )}
 
                     {/* TODA LA SECCIÓN DE CARGA MASIVA CSV SOLO LA VERÁ EL ADMIN */}
                     {userRole === 'ADMIN' && (

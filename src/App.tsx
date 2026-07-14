@@ -6,8 +6,9 @@ import { RegistroMaestros } from './components/RegistroMaestros/RegistroMaestros
 import { AlumnosAdmi } from './components/AlumnosAdmi/AlumnosAdmi';
 import { InicioSesion } from './components/InicioSesion/InicioSesion';
 import { BitacoraView } from './components/Bitacora/BitacoraView';
+import { ReportesView } from './components/Reportes/ReportesView'; // <--- AÑADIDO: Importación de la nueva vista
 
-type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos' | 'login' | 'bitacora';
+type Screen = 'entrada' | 'registro' | 'carga' | 'maestros' | 'alumnos' | 'login' | 'bitacora' | 'reportes';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
@@ -38,6 +39,7 @@ function App() {
 
       {currentScreen === 'entrada' && (
         <RegistroEntrada
+          
           userRole={userRole}
           onLogout={handleLogout}
           onNavigateToRegister={() => { setMatriculaEdit(null); setCurrentScreen('registro'); }}
@@ -45,6 +47,7 @@ function App() {
           onNavigateToCarga={() => setCurrentScreen('carga')}
           onNavigateToAlumnos={() => setCurrentScreen('alumnos')}
           onNavigateToBitacora={() => setCurrentScreen('bitacora')}
+          onNavigateToReportes={() => setCurrentScreen('reportes')}
         />
       )}
 
@@ -61,7 +64,12 @@ function App() {
       )}
 
       {currentScreen === 'bitacora' && (
-        <BitacoraView onBack={goHome} /> // <--- RENDERIZAR NUEVA VISTA
+        <BitacoraView onBack={goHome} />
+      )}
+
+      {/* --- AÑADIDO: Renderizado de la vista de Reportes --- */}
+      {currentScreen === 'reportes' && (
+        <ReportesView onBack={goHome} />
       )}
 
       {currentScreen === 'alumnos' && (
@@ -73,7 +81,7 @@ function App() {
           }}
         />
       )}
-
+      
     </div>
   );
 }

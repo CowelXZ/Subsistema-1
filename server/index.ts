@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { getConnection } from './database.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import reportesRoutes from './routes/reportes';
 
 // Routers
 import usuariosRouter from './routes/usuarios.js';
@@ -72,6 +73,7 @@ app.use(limiterGeneral);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/maestros', maestrosRouter);
 app.use('/api/alumnos-admi', alumnosRouter);
+app.use('/api/reportes', reportesRoutes);
 app.use('/api', catalogosRouter);
 
 // Rutas de Carga Masiva (CSV) — con rate limit propio
