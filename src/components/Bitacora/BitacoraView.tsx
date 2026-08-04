@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Header } from '../common/Header';
-import { Modal } from '../common/Modal'; // Importamos tu Modal
+import { Modal } from '../common/Modal';
+import { API_URL } from '../../config';
 
 interface BitacoraItem {
     idAcceso: number;
@@ -39,10 +40,21 @@ export const BitacoraView: React.FC<Props> = ({ onBack }) => {
     useEffect(() => {
         const cargarBitacora = async () => {
             try {
-                const response = await fetch('http://localhost:3000/api/auth/bitacora');
+                // 1. Extraemos el token de la memoria del navegador
+                const token = localStorage.getItem('token');
+
+                // 2. Lo enviamos en el encabezado de autorización
+                const response = await fetch(`${API_URL}/api/auth/bitacora`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     setLogs(data);
+                } else {
+                    console.error("No autorizado o token expirado");
                 }
             } catch (error) {
                 console.error("Error de red al cargar la bitácora:", error);
@@ -88,9 +100,15 @@ export const BitacoraView: React.FC<Props> = ({ onBack }) => {
         setFormMensaje(null);
 
         try {
-            const response = await fetch('http://localhost:3000/api/auth/registrar', {
+            // Extraemos el token también para proteger la creación de usuarios
+            const token = localStorage.getItem('token');
+
+            const response = await fetch(`${API_URL}/api/auth/registrar`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Lo inyectamos aquí también
+                },
                 body: JSON.stringify(formData)
             });
             const data = await response.json();

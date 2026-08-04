@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './InicioSesion.css';
+import { API_URL } from '../../config';
 
 interface Props {
     onLoginSuccess?: (rol: string) => void; 
@@ -18,7 +19,8 @@ export const InicioSesion: React.FC<Props> = ({ onLoginSuccess }) => {
         setCargando(true);
 
         try {
-            const response = await fetch('http://localhost:3000/api/auth/login', {
+            // --- ACTUALIZADO: Uso de la variable de entorno API_URL ---
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ correo, contrasena: password })
@@ -33,9 +35,9 @@ export const InicioSesion: React.FC<Props> = ({ onLoginSuccess }) => {
             }
 
             setCargando(false);
-            console.log("Bienvenido:", data.usuario); 
-            // AQUÍ ESTÁ LA MAGIA: Le pasamos el rol (ADMIN, SUPERVISOR u OPERADOR)
-            if (onLoginSuccess) onLoginSuccess(data.usuario.rol); 
+            console.log("Bienvenido:", data.usuario);
+            localStorage.setItem('token', data.token);
+            if (onLoginSuccess) onLoginSuccess(data.usuario.rol);
 
         } catch (error) {
             console.error('Error de red:', error);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Header } from '../common/Header';
-import { Modal } from '../common/Modal'; // <--- 1. Importamos el Modal
+import { Modal } from '../common/Modal';
+import { API_URL } from '../../config';
 
 interface AccesoItem {
     idAcceso: number;
@@ -35,7 +36,7 @@ export const ReportesView: React.FC<Props> = ({ onBack }) => {
     useEffect(() => {
         const cargarReportes = async () => {
             try {
-                const response = await fetch('http://localhost:3000/api/reportes');
+                const response = await fetch(`${API_URL}/api/reportes`);
                 if (response.ok) {
                     const data = await response.json();
                     setAccesos(data);
