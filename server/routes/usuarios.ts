@@ -1,11 +1,11 @@
-import { Router, NextFunction } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { getConnection, sql } from '../database.js';
 import { validateId } from '../middleware/validateId.js';
 
 const router = Router();
 
 // 1. Buscar Usuario por Matrícula (Para el Escáner o Edición)
-router.get('/:matricula', async (req, res) => {
+router.get('/:matricula', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { matricula } = req.params;
         const pool = await getConnection();

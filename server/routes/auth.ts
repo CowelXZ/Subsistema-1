@@ -10,8 +10,8 @@ const router = Router();
 // Llave maestra para firmar los tokens (En producción esto va en un archivo .env)
 const JWT_SECRET = process.env.JWT_SECRET || 'Firma_Super_Segura_UAT_2026';
 
-// 1. REGISTRAR UN NUEVO USUARIO (ENCRIPTADO)
-router.post('/registrar', async (req: Request, res: Response): Promise<void> => {
+// 1. REGISTRAR UN NUEVO USUARIO (ENCRIPTADO) — Solo usuarios autenticados
+router.post('/registrar', verificarToken, async (req: Request, res: Response): Promise<void> => {
     const { correo, nombre, apellidoPaterno, apellidoMaterno, contrasena, rol } = req.body;
 
     try {

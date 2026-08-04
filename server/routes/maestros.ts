@@ -1,11 +1,11 @@
-import { Router, NextFunction } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { getConnection, sql } from '../database.js';
 import { validateId } from '../middleware/validateId.js';
 
 const router = Router();
 
 // 1. Registrar Nuevo Maestro y sus Horarios
-router.post('/crear', async (req, res) => {
+router.post('/crear', async (req: Request, res: Response, next: NextFunction) => {
 try {
         const {
             numeroEmpleado, nombres, apellidoPaterno, apellidoMaterno,
@@ -68,7 +68,7 @@ try {
 });
 
 // 2. Buscar maestro y todo su horario por Matrícula
-router.get('/buscar/:matricula', async (req, res) => {
+router.get('/buscar/:matricula', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión");
@@ -108,7 +108,7 @@ router.get('/buscar/:matricula', async (req, res) => {
 });
 
 // 3. Obtener Carga Académica (El JOIN de las 3 tablas + Grupos)
-router.get('/carga', async (req, res) => {
+router.get('/carga', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const pool = await getConnection();
         if (!pool) throw new Error("Sin conexión a BD");
@@ -160,7 +160,7 @@ router.get('/carga', async (req, res) => {
 });
 
 // 4. Agregar materia
-router.post('/agregar-materia', async (req, res) => {
+router.post('/agregar-materia', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { idMaestro, materia, horaInicio, horaFin, dias, idarea, semestre, grupo, carrera, salon } = req.body;
         const pool = await getConnection();

@@ -34,6 +34,7 @@ const origenesPermitidos = [
     'http://localhost:80',     // Docker / Nginx
     'http://localhost',
 ];
+
 app.use(cors({
     origin: (origin, callback) => {
         // Permitir peticiones sin origin (Postman, Docker mismo host)
@@ -43,8 +44,9 @@ app.use(cors({
             callback(new Error('Origen no permitido por CORS'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type'],
+    // --- MAGIA APLICADA AQUÍ: Agregamos OPTIONS y Authorization ---
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // --- SEGURIDAD: Límite de tamaño de payload (fotos en base64 ~= 3-4 MB) ---
@@ -97,5 +99,5 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
